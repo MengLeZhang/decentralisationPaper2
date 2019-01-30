@@ -7,8 +7,10 @@ source('UI paper 1 source.R')
 ##  Again the format is the same as the English
 
 ##  Essential step ----
-#area.tab <- './Results/Area size for lsoa and datazones.csv' %>% read.csv
-#area.tab$zone %>% duplicated() %>% sum #duplicated codes
+area.tab <- './Saved generated data/Area size for lsoa and datazones lkp.csv' %>%
+  read.csv
+# area.tab %>% dplyr::select(zone, type) %>%
+#   duplicated() %>% sum #duplicated codes and years -- should be zero
 
 ##  1) 2004 scot data -----
 ## ~~~~~~ ##
