@@ -113,3 +113,165 @@ dz01.access <- access.measure(df.x = dz01.sf, df.y = oa.sf)
 dz01.access %>% write.csv('Saved generated data/emp access dz01 lkp.csv')
 
 
+
+##  Scotland 2011 -----------
+##  A) datazone (df.x)
+dz11.sf <- 
+  google.drive.spatial %>% paste0('/Scottish datazones/2011') %>%
+  read_sf(layer = 'SG_DataZone_Cent_2011')
+
+st_geometry(dz11.sf) <- NULL 
+
+dz11.sf <- dz11.sf %>%
+  mutate(zone = DataZone,
+         x = Easting,
+         y = Northing)
+
+##  B) work (df.y)
+##  Centroids first
+oa.sf <- 
+  read_sf(dsn = google.drive.spatial %>% paste0('/OA 2011/Scotland'),
+          layer = 'OutputArea2011_PWC')
+
+st_geometry(oa.sf) <- NULL
+oa.sf %>% head
+
+oa.sf <- oa.sf %>%
+  mutate(zone = code,
+         x = easting,
+         y = northing) ## the old oa name
+
+##  Attach work data
+wkp.df <- google.drive.spatial %>% 
+  paste0('/OA 2011/Scotland/workplace pop oa 2011 scotland.csv') %>%
+  read.csv(na.string = '-')
+
+wkp.df <- 
+  wkp.df %>%
+  mutate(wk.pop = wkplace.pop.16.to.74 %>% replace_na(0),
+         zone = OA)
+
+##  merge and some might not be there but hmm
+oa.sf <- 
+  oa.sf %>%
+  merge(wkp.df)
+
+##  C) Now to calculate and save
+dz11.access %>% summary
+dz11.access <- access.measure(df.x = dz11.sf, df.y = oa.sf)
+dz11.access %>% write.csv('Saved generated data/emp access dz11 lkp.csv')
+
+##  England 2001 -----------
+##  A) datazone (df.x)
+lsoa01.sf <- st_read(
+  dsn = google.drive.spatial %>%
+    paste('/LSOA 2001', sep = ''),
+  layer = 'Lower_Layer_Super_Output_Areas_December_2001_Population_Weighted_Centroids') %>%
+  st_transform(crs = st_crs(ukgrid))
+
+lsoa01.sf <- cbind(lsoa01.sf %>% st_coordinates,
+                   lsoa01.sf)
+st_geometry(lsoa01.sf) <- NULL 
+
+lsoa01.sf <- 
+  lsoa01.sf %>%
+  mutate(zone = lsoa01cd,
+         x = X,
+         y = Y)
+
+##  B) work (df.y)
+##  Centroids first
+oa.sf <- 
+  read_sf(dsn = google.drive.spatial %>% paste0('/OA 2001'),
+          layer = 'Output_Areas_December_2001_Full_Clipped_Boundaries_in_England_and_Wales') %>%
+  st_transform(ukgrid)
+
+oa.sf <- cbind(oa.sf %>% st_centroid %>% st_coordinates, 
+               oa.sf) #turn to centroids and get coords
+st_geometry(oa.sf) <- NULL
+
+oa.sf <- oa.sf %>%
+  mutate(zone = oa01cd,
+         x = X,
+         y = Y) 
+
+##  Attach work data
+oa.wplace01 <- 
+  google.drive.spatial %>%
+  paste('/OA 2001/workplace oa 2001.csv', sep = '') %>%
+  read.csv
+
+wkp.df <- 
+  oa.wplace01 %>%
+  mutate(zone = substr(Area, 8 , 17),
+         wk.pop = X2001 %>% as.numeric)
+
+head(wkp.df) ; wkp.df[1000, ] ## okay so some codes are useless
+
+##  merge
+oa.sf <- 
+  oa.sf %>%
+  merge(wkp.df)
+
+##  C) Now to calculate and save (it's huge so we have to break it down)
+nrow(lsoa01.sf) ## so in 10k slices
+
+lsoa01.access.pt1 <- access.measure(df.x = lsoa01.sf[1:10000, ], df.y = oa.sf)
+lsoa01.access.pt2 <- access.measure(df.x = lsoa01.sf[10001:20000, ], df.y = oa.sf)
+lsoa01.access.pt3 <- access.measure(df.x = lsoa01.sf[20001:nrow(lsoa01.sf), ], df.y = oa.sf)
+
+lsoa01.access <- 
+  rbind(lsoa01.access.pt1, lsoa01.access.pt2, lsoa01.access.pt3)
+
+lsoa01.access %>% write.csv('Saved generated data/emp access lsoa01 lkp.csv')
+
+
+
+##  England 2011 (WIP) -----------
+##  A) datazone (df.x)
+lsoa11.sf <- 
+  google.drive.spatial %>% paste0('/Scottish datazones/2011') %>%
+  read_sf(layer = 'SG_DataZone_Cent_2011')
+
+st_geometry(lsoa11.sf) <- NULL 
+
+lsoa11.sf <- lsoa11.sf %>%
+  mutate(zone = DataZone,
+         x = Easting,
+         y = Northing)
+
+##  B) work (df.y)
+##  Centroids first
+oa.sf <- 
+  read_sf(dsn = google.drive.spatial %>% paste0('/OA 2011/Scotland'),
+          layer = 'OutputArea2011_PWC')
+
+st_geometry(oa.sf) <- NULL
+oa.sf %>% head
+
+oa.sf <- oa.sf %>%
+  mutate(zone = code,
+         x = easting,
+         y = northing) ## the old oa name
+
+##  Attach work data
+wkp.df <- google.drive.spatial %>% 
+  paste0('/OA 2011/Scotland/workplace pop oa 2011 scotland.csv') %>%
+  read.csv(na.string = '-')
+
+wkp.df <- 
+  wkp.df %>%
+  mutate(wk.pop = wkplace.pop.16.to.74 %>% replace_na(0),
+         zone = OA)
+
+##  merge and some might not be there but hmm
+oa.sf <- 
+  oa.sf %>%
+  merge(wkp.df)
+
+##  C) Now to calculate and save
+lsoa11.access %>% summary
+lsoa11.access <- access.measure(df.x = lsoa11.sf, df.y = oa.sf)
+lsoa11.access %>% write.csv('Saved generated data/emp access lsoa11 lkp.csv')
+
+
