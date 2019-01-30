@@ -14,16 +14,17 @@ area.tab <- './Saved generated data/Area size for lsoa and datazones lkp.csv' %>
 
 ##  1) 2004 scot data -----
 ## ~~~~~~ ##
-#dz.access <- './Results/Scot access to emp 2001.csv' %>% read.csv # distance nearest is here
 
-geo <- '../Spatial lookup files/UK/Scottish IMDs/2004/simd 04 geo access.csv' %>% read.csv
-house <- '../Spatial lookup files/UK/Scottish IMDs/2004/simd 04 housing.csv' %>% read.csv
+#dz.access <- './Results/Scot access to emp 2001.csv' %>% read.csv # distance nearest is here #!# Need distances code
 
-pop <- '../Spatial lookup files/UK/Scottish IMDs/2004/simd 04.csv' %>% read.csv
-live.out <- '../Spatial lookup files/UK/Scottish air pollution/scot air pollution from Gavin longform.csv' %>%
-  read.csv %>% subset(time == '2004')##this is the indicator of air quality from gaving
-
-pm25 <- './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv
+geo <- 
+  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04 geo access.csv') %>% read.csv
+house <- 
+  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04 housing.csv') %>% read.csv
+pop <- 
+  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04.csv') %>% read.csv
+pm25 <- 
+  './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv #!# Defra need check
 pm25 <- pm25 %>% subset(type == 'dz01')
 
 
@@ -79,11 +80,11 @@ rm(neat.tab)
 dz.access <- './Results/Scot access to emp 2001.csv' %>% read.csv
 
 ##  Step two: Batch merge with the imd
-geo <- '../Spatial lookup files/UK/Scottish IMDs/2006/simd 06 geo access.csv' %>% read.csv
-house <- '../Spatial lookup files/UK/Scottish IMDs/2006/simd 06 housing.csv' %>% read.csv
-crime <- '../Spatial lookup files/UK/Scottish IMDs/2006/simd 06 crime.csv' %>% read.csv
-pop <- '../Spatial lookup files/UK/Scottish IMDs/2006/simd 06.csv' %>% read.csv
-live.out <- '../Spatial lookup files/UK/Scottish air pollution/scot air pollution from Gavin longform.csv' %>%
+geo <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06 geo access.csv' %>% read.csv
+house <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06 housing.csv' %>% read.csv
+crime <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06 crime.csv' %>% read.csv
+pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06.csv' %>% read.csv
+live.out <- google.drive.spatial %>% paste0('/Scottish air pollution/scot air pollution from Gavin longform.csv' %>%
   read.csv %>% subset(time == '2006')##this is the indicator of air quality from gaving
 
 pm25 <- './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv
@@ -138,11 +139,11 @@ rm(neat.tab)
 dz.access <- './Results/Scot access to emp 2001.csv' %>% read.csv
 
 ##  Step two: Batch merge with the imd
-geo <- '../Spatial lookup files/UK/Scottish IMDs/2009/simd 09 geo access.csv' %>% read.csv
-house <- '../Spatial lookup files/UK/Scottish IMDs/2009/simd 09 housing.csv' %>% read.csv
-crime <- '../Spatial lookup files/UK/Scottish IMDs/2009/simd 09 crime.csv' %>% read.csv
-pop <- '../Spatial lookup files/UK/Scottish IMDs/2009/simd 09.csv' %>% read.csv
-live.out <- '../Spatial lookup files/UK/Scottish air pollution/scot air pollution from Gavin longform.csv' %>%
+geo <- google.drive.spatial %>% paste0('/Scottish IMDs/2009/simd 09 geo access.csv' %>% read.csv
+house <- google.drive.spatial %>% paste0('/Scottish IMDs/2009/simd 09 housing.csv' %>% read.csv
+crime <- google.drive.spatial %>% paste0('/Scottish IMDs/2009/simd 09 crime.csv' %>% read.csv
+pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2009/simd 09.csv' %>% read.csv
+live.out <- google.drive.spatial %>% paste0('/Scottish air pollution/scot air pollution from Gavin longform.csv' %>%
   read.csv %>% subset(time == '2009')##this is the indicator of air quality from gaving
 
 pm25 <- './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv
@@ -196,10 +197,10 @@ rm(neat.tab)
 ##  Step 4: Scot data 2012 -----
 dz.access <- './Results/Scot access to emp 2001.csv' %>% read.csv
 
-geo <- '../Spatial lookup files/UK/Scottish IMDs/2012/simd 12 geo access.csv' %>% read.csv
-house <- '../Spatial lookup files/UK/Scottish IMDs/2012/simd 12 housing.csv' %>% read.csv
-crime <- '../Spatial lookup files/UK/Scottish IMDs/2012/simd 12 crime.csv' %>% read.csv
-pop <- '../Spatial lookup files/UK/Scottish IMDs/2012/simd 12.csv' %>% read.csv
+geo <- google.drive.spatial %>% paste0('/Scottish IMDs/2012/simd 12 geo access.csv' %>% read.csv
+house <- google.drive.spatial %>% paste0('/Scottish IMDs/2012/simd 12 housing.csv' %>% read.csv
+crime <- google.drive.spatial %>% paste0('/Scottish IMDs/2012/simd 12 crime.csv' %>% read.csv
+pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2012/simd 12.csv' %>% read.csv
 
 pm25 <- './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv
 pm25 <- pm25 %>% subset(type == 'dz01')
@@ -253,8 +254,8 @@ dz.access <- './Results/Scot access to emp 2011.csv' %>% read.csv #okay so we di
 
 
 ##  Step two: The 2016 imd is all in one place but we need to merge with ranks
-pop <- '../Spatial lookup files/UK/Scottish IMDs/2016/simd 16 all.csv' %>% read.csv
-ranks <- '../Spatial lookup files/UK/Scottish IMDs/2016/simd 16 ranks.csv' %>% read.csv
+pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2016/simd 16 all.csv' %>% read.csv
+ranks <- google.drive.spatial %>% paste0('/Scottish IMDs/2016/simd 16 ranks.csv' %>% read.csv
 
 pm25 <- './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv
 pm25 <- pm25 %>% subset(type == 'dz11')
