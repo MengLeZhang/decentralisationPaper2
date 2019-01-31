@@ -4,7 +4,7 @@
 ##  lsoa01 and we have made things more routine
 ##  So that is the big difference between our two attempts.
 
-'UI paper 1 source.R' %>% source
+source('UI paper 1 source.R') 
 ukgrid = "+init=epsg:27700" ## always remember the CRS
 library(RANN) ## additional 
 
@@ -227,51 +227,67 @@ lsoa01.access %>% write.csv('Saved generated data/emp access lsoa01 lkp.csv')
 
 
 
-##  England 2011 (WIP) -----------
+##  England 2011  -----------
 ##  A) datazone (df.x)
-lsoa11.sf <- 
-  google.drive.spatial %>% paste0('/Scottish datazones/2011') %>%
-  read_sf(layer = 'SG_DataZone_Cent_2011')
+lsoa11.sf <- st_read(
+  dsn = google.drive.spatial %>%
+    paste('/LSOA 2011', sep = ''),
+  layer = 'Lower_Layer_Super_Output_Areas_December_2011_Population_Weighted_Centroids') %>%
+  st_transform(crs = st_crs(ukgrid))
 
+lsoa11.sf <- cbind(lsoa11.sf %>% st_coordinates,
+                   lsoa11.sf)
 st_geometry(lsoa11.sf) <- NULL 
 
-lsoa11.sf <- lsoa11.sf %>%
-  mutate(zone = DataZone,
-         x = Easting,
-         y = Northing)
+lsoa11.sf <- 
+  lsoa11.sf %>%
+  mutate(zone = lsoa11cd,
+         x = X,
+         y = Y)
 
 ##  B) work (df.y)
 ##  Centroids first
 oa.sf <- 
-  read_sf(dsn = google.drive.spatial %>% paste0('/OA 2011/Scotland'),
-          layer = 'OutputArea2011_PWC')
+  read_sf(dsn = google.drive.spatial %>% paste0('/OA 2011'),
+          layer = 'Output_Area_December_2011_Generalised_Clipped_Boundaries_in_England_and_Wales') %>%
+  st_transform(ukgrid)
 
+oa.sf <- cbind(oa.sf %>% st_centroid %>% st_coordinates, 
+               oa.sf) #turn to centroids and get coords
 st_geometry(oa.sf) <- NULL
-oa.sf %>% head
 
 oa.sf <- oa.sf %>%
-  mutate(zone = code,
-         x = easting,
-         y = northing) ## the old oa name
+  mutate(zone = oa11cd,
+         x = X,
+         y = Y) 
 
 ##  Attach work data
-wkp.df <- google.drive.spatial %>% 
-  paste0('/OA 2011/Scotland/workplace pop oa 2011 scotland.csv') %>%
-  read.csv(na.string = '-')
+oa.wplace11 <- 
+  google.drive.spatial %>%
+  paste('/OA 2011/workplace oa 2011.csv', sep = '') %>%
+  read.csv
 
 wkp.df <- 
-  wkp.df %>%
-  mutate(wk.pop = wkplace.pop.16.to.74 %>% replace_na(0),
-         zone = OA)
+  oa.wplace11 %>%
+  mutate(zone = X2011.output.area,
+         wk.pop = X2011 %>% as.numeric)
 
-##  merge and some might not be there but hmm
+##  merge
 oa.sf <- 
   oa.sf %>%
   merge(wkp.df)
 
-##  C) Now to calculate and save
-lsoa11.access %>% summary
-lsoa11.access <- access.measure(df.x = lsoa11.sf, df.y = oa.sf)
+##  C) Now to calculate and save (it's huge so we have to break it down)
+nrow(lsoa11.sf) ## so in 10k slices
+
+lsoa11.access.pt1 <- access.measure(df.x = lsoa11.sf[1:10000, ], df.y = oa.sf)
+lsoa11.access.pt2 <- access.measure(df.x = lsoa11.sf[10001:20000, ], df.y = oa.sf)
+lsoa11.access.pt3 <- access.measure(df.x = lsoa11.sf[20001:nrow(lsoa11.sf), ], df.y = oa.sf)
+
+lsoa11.access <- 
+  rbind(lsoa11.access.pt1, lsoa11.access.pt2, lsoa11.access.pt3)
+
 lsoa11.access %>% write.csv('Saved generated data/emp access lsoa11 lkp.csv')
 
+##  End script
 

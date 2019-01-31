@@ -39,11 +39,9 @@ x <-
     "dplyr",
     "tidyr",
     "tmap",
-    'CARBayes',
     'shapefiles',
     'sp',
     'spdep',
-    'MCMCpack',
     'truncdist',
     'raster'
   )
@@ -52,7 +50,7 @@ warnings()
 
 ## Then options
 options(stringsAsFactors = FALSE)
-
+?options
 
 
 ##  Step two: We just actually need a a simple function to take coordinates about the middle of city and make new distance from centroids and percentiles. Actually we probably ought to do this seperately really in order to better see the results.
