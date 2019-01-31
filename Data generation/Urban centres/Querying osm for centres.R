@@ -1,3 +1,4 @@
+##  Query OSM in England and scotland
 ##  Querying openstreet map to find city and town centres as well as landmarks
 ##  Implementation requires the osmdata package to query osm
 #options(repos = c(CRAN = "https://cran.revolutionanalytics.com")) # code to use different repository than default
@@ -8,17 +9,23 @@ ukgrid = "+init=epsg:27700" ## always remember the CRS
 
 
 # Section 1: Querying osm and saving the data (can skip if query done) -----------------------------
-eng_bb <- getbb('england, uk') # Extent of England
-wales_bb <- getbb('wales') # Extent of Wales
-eng_bb; wales_bb ## actually england has the max and min
-bb <- eng_bb
+##  Need England and Scotland at least
 
-city_sf <- opq(bbox = bb) %>% 
+bb <- 
+#  getbb('wales', featuretype = 'country')
+  getbb('uk', featuretype = 'country') ## works just search for country; this is full extent checked
+
+## Sometimes we get overpass errors; assuming that we are using latest version of
+##  osmdata (check because MRAN has older pkgs) then this is caused by server failure
+##  esp. if we are restricted due to our large data request
+city_sf <- 
+  opq(bbox = bb) %>% 
   add_osm_feature(key = 'place', value = 'city') %>%
   osmdata_sf
 city_sf$osm_points$type <- 'city'
 
-town_sf <- opq(bbox = bb) %>% 
+town_sf <- 
+  opq(bbox = bb) %>% 
   add_osm_feature(key = 'place', value = 'town') %>%
   osmdata_sf
 town_sf$osm_points$type <- 'town'
