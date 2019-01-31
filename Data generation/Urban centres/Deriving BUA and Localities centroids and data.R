@@ -122,6 +122,7 @@ st_geometry(combined.df) <- NULL
 ##  Scot 3) Do a spatial join of the lsoa file to bua and buasd then caluclate stats -------
 combined.df <- oa.sf %>% st_join(oa.area) %>% st_join(loc.sf)
 st_geometry(combined.df) <- NULL
+combined.df %>% head
 
 loc.weighted <- combined.df %>% 
   group_by(L12NAME) %>% 
@@ -131,7 +132,8 @@ loc.weighted <- combined.df %>%
             pweight_y = weighted.mean(northing, oa.pop),
             pop11 = sum(oa.pop),
             number_oa = oa.pop %>% length,
-            type = 'locality')
+            type = 'locality') %>%
+  rename(name = L12NAME)
 
 ##  Now to save
 loc.weighted %>%
