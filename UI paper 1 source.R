@@ -27,6 +27,8 @@ google.drive <- 'C:/Users/Meng Le Zheng/Synced Google Drive/Google Drive'
 google.drive.spatial <- google.drive %>% 
   paste('/Spatial lookup files/UK', sep = '') ## The path to the spatial lkp data on laptop
 
+##  Default CRS used for easting and northing
+ukgrid = "+init=epsg:27700" ## always remember the CRS
 
 ##  Step one: If calling from a source() command it would be nice to having it load up all the packages we need
 x <-

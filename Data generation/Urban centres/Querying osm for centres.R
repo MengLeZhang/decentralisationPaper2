@@ -3,6 +3,8 @@
 ##  Implementation requires the osmdata package to query osm
 #options(repos = c(CRAN = "https://cran.revolutionanalytics.com")) # code to use different repository than default
 ##  We have imprved the old SLS and rci paper routine -- should be better
+##  Routine rune version : 31/1/2019 ## This is because maybe osm points can move?
+
 
 pkgs <- c('osmdata', 'tmap', 'sf', 'tidyverse', 'RANN')
 lapply(pkgs, require, character.only = T)

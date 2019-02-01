@@ -1,9 +1,8 @@
-##  Creating distances from urban centres based on LSOA11
-##  Start: 30/11
+##  Creating distance from the centre routine for each type of zone in:
+##  1) Datazones (2001) and 2011
+##  2) LSOA01 and LSOA11 
+##  This requires use to know which datazone and which LSOAs are where
 
-source.file <- 'RCI functions.R' #path to source
-source(source.file)
-ukgrid = "+init=epsg:27700" ## always remember the CRS
 library(RANN)
 
 
