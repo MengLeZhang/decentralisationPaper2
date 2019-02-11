@@ -139,6 +139,7 @@ grid2dz01$zone %in% dz2001.sf$DZ_CODE %>% table #all good
 rm(dz2001.sf)
 
 ##  D: Run for datazones 2011
+
 dz2011.sf <-
   read_sf(dsn = google.drive.spatial %>% paste0('/Scottish datazones/2011'),
           layer = 'SG_SIMD_2016') %>%
