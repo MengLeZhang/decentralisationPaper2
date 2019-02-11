@@ -16,6 +16,7 @@ grids <-
   google.drive.spatial %>% paste0('/Defra air pollution/mappm252004g.csv') %>%
   read.csv
 str(grids) #So readings with x and y coordinates of the centroids in northing easting
+grid %>% rm
 
 ##  Convert dataframe to sf
 
@@ -106,7 +107,8 @@ rm(lsoa2001.sf) # get rid of the lsoa
 ##  B: Run for lsoa 2011
 lsoa2011.sf <-
   read_sf(dsn = google.drive.spatial %>% paste0('/LSOA 2011'),
-          layer = 'Lower_Layer_Super_Output_Areas_December_2011_Full_Extent__Boundaries_in_England_and_Wales')
+          layer = 'Lower_Layer_Super_Output_Areas_December_2011_Full_Extent__Boundaries_in_England_and_Wales') %>%
+  st_transform(crs = ukgrid)
 lsoa2011.sf %>% head
 
 grid2lsoa11 <- 
@@ -122,7 +124,8 @@ rm(lsoa2011.sf)
 ## c: Run for datazones 2001
 dz2001.sf <-
   read_sf(dsn = google.drive.spatial %>% paste0('/Scottish datazones/2001'),
-          layer = 'SG_DataZone_Bdry_2001')
+          layer = 'SG_DataZone_Bdry_2001') %>%
+  st_transform(crs = ukgrid)
 dz2001.sf
 
 grid2dz01 <- 
@@ -138,7 +141,8 @@ rm(dz2001.sf)
 ##  D: Run for datazones 2011
 dz2011.sf <-
   read_sf(dsn = google.drive.spatial %>% paste0('/Scottish datazones/2011'),
-          layer = 'SG_SIMD_2016')
+          layer = 'SG_SIMD_2016') %>%
+  st_transform(crs = ukgrid)
 
 grid2dz11 <- 
   grid2zone(grids.sf,
@@ -159,6 +163,7 @@ grid2all <- rbind(grid2lsoa01,
                   grid2dz01,
                   grid2dz11)
 grid2all %>% head
+grid2all$type %>% table
 grid2all %>% write.csv('./Saved generated data/Defra grids to dz and lsoa lkp.csv',
                        row.names = F)
 
