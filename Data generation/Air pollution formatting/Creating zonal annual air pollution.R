@@ -1,6 +1,6 @@
 ##  Defra linkage: Now we need to use the grid to zoen information to just link
 ##  up all the pm2.5 info.
-##  sTART: 13/7/2018
+##  Start: 13/7/2018
 source('UI paper 1 source.R')
 
 ##  Step one: Load in the various defra grid pollution files ----

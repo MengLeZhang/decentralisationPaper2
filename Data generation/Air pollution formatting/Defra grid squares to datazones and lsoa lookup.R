@@ -16,19 +16,24 @@ grids <-
   google.drive.spatial %>% paste0('/Defra air pollution/mappm252004g.csv') %>%
   read.csv
 str(grids) #So readings with x and y coordinates of the centroids in northing easting
-grid %>% rm
+
 
 ##  Convert dataframe to sf
-
 grids.sf <-
   st_as_sf(x = grids,
            coords = c('x', 'y'),
            crs = ukgrid)
+grids %>% rm # remove the non-sf grid file
 
 ##  Step 2: Define the routine to output the lookupfiles -----
 ##  Zones must match 
 grid2zone <-
   function(grids.sf, zones.sf, zone.nm, zone.type) {
+    # Fundamentals --
+    ## 1) find which grid centroids lie in which zones
+    ##  2) Some zones will lack even a single grid centroid since none land there
+    ##  so we need to find those zones and get their nearest grid centre
+    
     ## Set same CRS for zone and grid (the defra file has no crs) and restrict to
     ##  grids within the whole range of zones
     
@@ -36,19 +41,23 @@ grid2zone <-
       print('CRS does not match')
       return(NULL)
     }
+  
     
-    ##  Now we need to find which grid centroids are within which polygons
+    ## Function step 1) centroids within polygons ---- 
+    ##  we need to find which grid centroids are within which polygons
     ##  This makes up the macthed results
     system.time(grid.match <-
-                  st_within(x = grids.sf, y = zones.sf)) %>% print
-    ## Just curious about time for st_within
+                  st_intersects(x = grids.sf, y = zones.sf)) %>% print
+    ## We tried with st_within but it failed for 2011 and was much slower
+    ##  than st_intersects
     
     ## Create a vector which shows which grid squares are unmatched
     unmatched.id <-
       lapply(grid.match, function(x)
         length(x) == 0L) %>% unlist
     #grid.match[unmatched.id] <- NA #change elements with 0 lenght (i.e. no match) to NA # superfluous but useful to know
-    
+    ##  unmatched grids are okay we just need to avoid filling their space with 
+    ##  data
     
     matched_grid <-
       grids.sf$ukgridcode[!unmatched.id]
@@ -56,11 +65,9 @@ grid2zone <-
     matched_zone <-
       matched_zone[grid.match %>% unlist]
     
-    ## Next step. Get the unmatched zones using unmatched.id and find which grid
-    ##  is closest to their centroid
-    ##  This is the unmatched results
-    
-    
+    ##  Function step 2: Get the unmatched zones to matched to nearest grid-----
+    ##  This is the unmatched zones (i.e no grid centroid within)
+  
     missing.id <-
       !(zones.sf[[zone.nm]] %in% unique(matched_zone))
     missing.zone <- zones.sf[missing.id,]
@@ -126,7 +133,7 @@ dz2001.sf <-
   read_sf(dsn = google.drive.spatial %>% paste0('/Scottish datazones/2001'),
           layer = 'SG_DataZone_Bdry_2001') %>%
   st_transform(crs = ukgrid)
-dz2001.sf
+
 
 grid2dz01 <- 
   grid2zone(grids.sf,
@@ -145,18 +152,26 @@ dz2011.sf <-
           layer = 'SG_SIMD_2016') %>%
   st_transform(crs = ukgrid)
 
+##  I think the sf st_within is slow if the data has lots of cols so let's test
+##  by reduction
+dz2011.sf <- dz2011.sf %>%
+  select.sf(DataZone)
+dz2011.sf
+
+
 grid2dz11 <- 
   grid2zone(grids.sf,
             dz2011.sf,
             'DataZone',
             'dz11')
 
-## Note: This takes ages...
+
 
 grid2dz11 %>% head
 grid2dz11$zone %in% dz2011.sf$DataZone %>% table #all good
 
 rm(dz2001.sf)
+grid2all$type %>% table # bizzarely few grid in the dz11 data! -- investigate
 
 ##  Step 4: Append all the result tables and save ----
 grid2all <- rbind(grid2lsoa01,
