@@ -1,42 +1,70 @@
-##  Generating inequality indicies
-##   We do this by formatting the Scottish data
-source('UI paper 1 source.R')
+##  We need to create a big spreadsheet of data that we will use later 
+##  for the inequality index. This is for every imd year so this may
+##  take a wee while and requires us to pay attention to the sourtce files
+##  This is for Scotland
 
+source('UI paper 1 source.R')
 
 ### This is the neater formatting for the Scottish data
 ##  Again the format is the same as the English
+##  For ease we will create a variable called 'zone' to always do the merger
 
-##  Essential step ----
-area.tab <- './Saved generated data/Area size for lsoa and datazones lkp.csv' %>%
+
+##  Essential step: load in commonly used data ----
+##  So this is lookups for area size (for summary stats); employment access
+##  and distance to centre
+##  All these variable already have 'zone' as a var
+
+area.tab <- 
+  './Saved generated data/Area size for lsoa and datazones lkp.csv' %>%
   read.csv
-# area.tab %>% dplyr::select(zone, type) %>%
-#   duplicated() %>% sum #duplicated codes and years -- should be zero
+
+accessdz.01 <- 
+  'Saved generated data/emp access dz01 lkp.csv' %>% read.csv %>%
+  mutate(type = '')
+accessdz.11 <- 
+  'Saved generated data/emp access dz11 lkp.csv' %>% read.csv
+
+dist <-
+  'Saved generated data/Distance from nearest centre for zones and TTWA lkp.csv' %>%
+  read.csv
+
+pm25 <- 'Saved generated data/Annual avg air pollution dz and lsoa.csv' %>%
+  read.csv
+pm25 %>% head
 
 ##  1) 2004 scot data -----
-## ~~~~~~ ##
 
-#dz.access <- './Results/Scot access to emp 2001.csv' %>% read.csv # distance nearest is here #!# Need distances code
-
+##  Load in primarily imd data
 geo <- 
-  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04 geo access.csv') %>% read.csv
+  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04 geo access.csv') %>% 
+  read.csv 
+geo <- geo %>%
+  mutate(zone = Data.Zone)
+
 house <- 
-  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04 housing.csv') %>% read.csv
+  google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04 housing.csv') %>% 
+  read.csv
+house <- house %>%
+  mutate(zone = Data.Zone)
+
 pop <- 
   google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04.csv') %>% read.csv
-pm25 <- 
-  './Results/Defra grid lookups/census zonal pm25 levels.csv' %>% read.csv #!# Defra need check
-pm25 <- pm25 %>% subset(type == 'dz01')
+pop <- pop %>%
+  mutate(zone = Data.Zone)
 
-
-head(pop); head(geo); head(house)
-head(dz.access)
 ##  mergers of geodata
-imd <- pop %>% merge(geo) %>% merge(house) %>% 
-  merge(dz.access, by.x = 'Data.Zone', by.y = 'lsoa') %>%
-  merge(live.out, by.x = 'Data.Zone', by.y = 'datazone') %>%
-  merge(area.tab %>% subset(type == 'dz01'), 
-        by.x = 'Data.Zone', by.y = 'zone', all.x = T) %>%
-  merge(pm25, by.x = 'Data.Zone', by.y = 'zone')
+imd <- pop %>% 
+  left_join(geo, by = 'zone') %>% 
+  left_join(house, by = 'zone') %>% 
+  left_join(accessdz.01, 
+            by = 'zone') %>%
+  left_join(area.tab %>% filter(type == 'dz01'),
+            by = 'zone') %>%
+  left_join(dist %>% filter(zone_type == 'dz01'), 
+            by = 'zone') %>%
+  left_join(pm25 %>% filter(type == 'dz01'), 
+            by = 'zone') 
 
 
 ##  Some SIMD varianbles have issues; income deprivation ns are missing
