@@ -80,7 +80,9 @@ neat.tab <-
          geo = Geographic.Access.and.Telecommunications.domain.rank,
          area = area,
          pm25 = year2004 %>% {-1 * .} %>% rank,
-         work = accessB)
+         work = accessB) %>%
+  dplyr::select(year:work)
+
 
 ##  ~~~#
 summary(neat.tab) #checks
@@ -130,7 +132,9 @@ neat.tab <-
          geo = Geographic.Access.domain.2006.rank,
          area = area,
          pm25 = year2006 %>% {-1 * .} %>% rank,
-         work = accessB)
+         work = accessB) %>%
+  dplyr::select(year:work)
+
 
 ##  ~~~#
 summary(neat.tab) #checks
@@ -176,7 +180,9 @@ neat.tab <-
          geo = Geographic.Access.domain.2009.rank,
          area = area,
          pm25 = year2009 %>% {-1 * .} %>% rank,
-         work = accessB)
+         work = accessB) %>%
+  dplyr::select(year:work)
+
 
 
 ##  ~~~#
@@ -222,7 +228,9 @@ neat.tab <-
          geo = Geographic.Access.domain.2012.rank,
          area = area,
          pm25 = year2012 %>% {-1 * .} %>% rank,
-         work = accessB)
+         work = accessB) %>%
+  dplyr::select(year:work)
+
 
 
 ##  ~~~#
@@ -276,7 +284,9 @@ neat.tab <-
          geo = Access_domain_2016_rank,
          area = area,
          pm25 = year2016 %>% {-1 * .} %>% rank,
-         work = accessB)
+         work = accessB)%>%
+  dplyr::select(year:work)
+
 
 
 ##  ~~~#
