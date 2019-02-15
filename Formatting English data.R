@@ -96,7 +96,7 @@ neat.tab <-
          area = area,
          pm25 = year2004 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 
@@ -165,7 +165,7 @@ neat.tab <-
          area = area,
          pm25 = year2007 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 
@@ -216,7 +216,7 @@ neat.tab <-
          area = area,
          pm25 = year2010 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 ##  ~~~#
@@ -267,7 +267,7 @@ neat.tab <-
          area = area,
          pm25 = year2015 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 ##

@@ -81,7 +81,7 @@ neat.tab <-
          area = area,
          pm25 = year2004 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 ##  ~~~#
@@ -133,7 +133,7 @@ neat.tab <-
          area = area,
          pm25 = year2006 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 ##  ~~~#
@@ -181,7 +181,7 @@ neat.tab <-
          area = area,
          pm25 = year2009 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 
@@ -229,7 +229,7 @@ neat.tab <-
          area = area,
          pm25 = year2012 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 
@@ -285,7 +285,7 @@ neat.tab <-
          area = area,
          pm25 = year2016 %>% {-1 * .} %>% rank,
          work = accessB)%>%
-  dplyr::select(year:work)
+  dplyr::select(year:work, area)
 
 
 
@@ -296,3 +296,4 @@ neat.tab %>% write.csv('Saved generated data/Formatted Scotland data 2016.csv')
 rm(neat.tab)
 
 ##  End -----
+
