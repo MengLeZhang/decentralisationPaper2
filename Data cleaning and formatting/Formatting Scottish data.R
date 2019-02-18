@@ -81,7 +81,7 @@ neat.tab <-
          area = area,
          pm25 = year2004 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work, area)
+  dplyr::select(zone, year:work, area)
 
 
 ##  ~~~#
@@ -100,7 +100,7 @@ pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06.csv') %>% re
 ##  Add a zone id and replace NA of number ofi ncome deprived to 0
 pop <- pop %>% 
   mutate(Number.of.Current.Income.Deprived.People.2006 = 
-           Number.of.Current.Income.Deprived.People.2006 %>% replace_na()) %>%
+           Number.of.Current.Income.Deprived.People.2006 %>% replace_na(0)) %>%
   mutate(zone = Data.Zone)
 
 ##  mergers of geodata
@@ -133,7 +133,7 @@ neat.tab <-
          area = area,
          pm25 = year2006 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work, area)
+  dplyr::select(zone, year:work, area)
 
 
 ##  ~~~#
@@ -148,7 +148,7 @@ pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2009/simd 09.csv') %>% re
 
 pop <- pop %>% 
   mutate(Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10. = 
-           Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10. %>% replace_na()) %>%
+           Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10. %>% replace_na(0)) %>%
   mutate(zone = Data.Zone)
 
 ##  mergers of geodata
@@ -181,7 +181,7 @@ neat.tab <-
          area = area,
          pm25 = year2009 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work, area)
+  dplyr::select(zone, year:work, area)
 
 
 
@@ -196,7 +196,7 @@ pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2012/simd 12.csv') %>% re
 
 pop <- pop %>% 
   mutate(Number.of.Income.Deprived.People.2012 = 
-           Number.of.Income.Deprived.People.2012 %>% replace_na()) %>%
+           Number.of.Income.Deprived.People.2012 %>% replace_na(0)) %>%
   mutate(zone = Data.Zone)
 
 ##  mergers of geodata
@@ -229,7 +229,7 @@ neat.tab <-
          area = area,
          pm25 = year2012 %>% {-1 * .} %>% rank,
          work = accessB) %>%
-  dplyr::select(year:work, area)
+  dplyr::select(zone, year:work, area)
 
 
 
@@ -244,7 +244,7 @@ pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2016/simd 16 all.csv') %>
 
 pop <- pop %>% 
   mutate(Income_count = 
-           Income_count %>% replace_na()) %>%
+           Income_count %>% replace_na(0)) %>%
   mutate(zone = Data_Zone)
 
 ranks <- google.drive.spatial %>%  
@@ -285,7 +285,7 @@ neat.tab <-
          area = area,
          pm25 = year2016 %>% {-1 * .} %>% rank,
          work = accessB)%>%
-  dplyr::select(year:work, area)
+  dplyr::select(zone, year:work, area)
 
 
 
