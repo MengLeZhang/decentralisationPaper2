@@ -16,6 +16,11 @@ sco16 <- read.csv('Saved generated data/Formatted Scotland data 2016.csv')
 combined.tab <- rbind(eng04, eng07, eng10, eng15,
                       sco04, sco06, sco09, sco12, sco16)
 
+##  Save a copy of the combined table: this is used for other linkage operations
+combined.tab %>% 
+  write.csv('Saved generated data/Master formated data of variables for England and Scotland (UI paper1).csv',
+            row.names = F)
+
 ##  Step 2) Caculate the duncan index for every combination of year and ttwa / la
 ##  TTWA
 combined.tab %>% str
