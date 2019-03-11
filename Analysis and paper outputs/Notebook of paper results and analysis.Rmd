@@ -1,0 +1,234 @@
+---
+title: "R Notebook"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+##  Note: Please run the source file first and any additional library
+```{r setup, message = F }
+knitr::opts_chunk$set(echo = T, message = F) #show code but no messages
+```
+
+```{r}
+source('../UI paper 1 source.R')
+library(MatchIt, quietly = T)
+library(Matching, quietly = T)
+library(stargazer, quietly = T)
+library(lme4)
+```
+
+
+
+##  1) The sample
+
+We first filter the data to non-isle and non-crossborder TTWAs. Then we only keep
+TTWA with pops over 70k in 2004.
+
+```{r}
+ttwa.tab <- '../Results/Duncan index by TTWA.csv' %>% read.csv(stringsAsFactors = F)
+crossborder.ttwa <- c('Hawick', 'Kelso & Jedburgh', 'Berwick', 'Carlisle') #cross national ttwas to be omitted
+isles.ttwa <- c(
+  'Eilean Siar',
+  'Mull & Islay',
+  'Campbeltown',
+  'Penzance & Isles of Scilly',
+  'Orkney Islands',
+  'Shetland Islands',
+  'Skye & Lochalsh',
+  'Lochaber',
+  'Irvine & Arran',
+  'Isle of Wight')
+#islands
+
+
+
+ttwa.tab <- 
+  ttwa.tab %>% 
+  filter(!(ttwa %in% crossborder.ttwa)) %>% #not a cross border ttwa
+  filter(!(ttwa %in% isles.ttwa)) %>% #nor isle
+  ##  We need to take these out first since crossborder ttwa are duplicated
+  group_by(ttwa) %>%
+  mutate(pop04 = total.pop[year == '2004']) %>% #variable for pop in 2004
+  ungroup %>%
+  filter(pop04 > 70000) %>% ## over 70k in 2004
+  filter(!is.na(ttwa)) ##finally no missign ttwa as this code is just due to our previous routine
+
+```
+
+##  2) Matching using Genmatch
+
+We have the full sample and now we further restrict to matched data. We match on 
+2004 / time invariant. First restrict to 2004.
+```{r}
+unmatch.tab <- 
+  ttwa.tab %>% 
+  filter(year == '2004')
+```
+
+We can automatically try to ger the best match using genetic matching. Then we 
+can compare the stae of our matches. Genetic matchign will use the propensity score 
+in the matching by default (it generate own: i think from Sekhon's examples).
+
+```{r, results= 'hide'}
+## We need to hide all the print statement caused by genmatch
+match.form <- I(country == 'Scotland') ~ total.pop + total.area + prop.inc
+
+set.seed(123) ## genetic matchhing is a random process so we must set seed
+match.res <- 
+  matchit(match.form,
+          data = unmatch.tab %>% dplyr::select(ttwa:prop.inc),
+          method = 'genetic')
+          
+match.stats <-
+  match.res %>% summary
+
+```
+
+Now we can try to summarise the matching results. 
+
+```{r}
+match.stats$nn
+
+```
+
+We have a total of `match.stats$nn[1, 1]` English and `match.stats$nn[1, 2]` Scottish ttwa. In our final matched sample, we have `match.stats$nn[2, 1]` English TTWAs matched to`match.stats$nn[2, 2]` Scottish ttwas. 
+
+##  Comparing variance between indicies.
+
+We note that the various indices are related to each other. 
+
+```{r, message = T}
+cor.df <- 
+  unmatch.tab %>% filter(year == 2004) 
+
+##  Making the correlation table 
+cor.vars <- c('dist_nearest', 'suburb', 'di','live.in', 'crime', 'geo', 'pm25', 'work')
+cor.table <- cor(cor.df %>% dplyr::select(cor.vars), 
+                 method = 'spearman', 
+                 use = 'pairwise.complete.obs') # only modest correlation
+
+##  Formatting it for stargazer
+cor.table[cor.table %>% upper.tri(diag = T)] <- NA
+ind.nms <- c('RCI', 'Suburb. Index', 'Diss. Index', 'Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access')
+rownames(cor.table) <- ind.nms
+colnames(cor.table) <- ind.nms
+
+stargazer(cor.table, 
+          type = 'text', #anything else stargazer will output like code
+          title = 'Spearman\'s rank correlation matrix between indicies (2004)',
+          out = '../Results/ Index correlation table.html',
+          notes = 'Note: Scottish crime data excluded from calculation')
+
+```
+
+
+##  Regression models
+
+The data we are using for the models
+
+```{r}
+reg.unmatch <- ttwa.tab # just the whole data
+
+##  For the matched data we basically need the TTWA and their weights
+temp.match <- MatchIt::match.data(match.res)
+head(temp.match)
+temp.match <- temp.match %>% dplyr::select(ttwa, weights)
+reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
+
+reg.match$year %>% table # okay so no missing
+```
+
+
+
+```{r}
+##  The multilevel models 
+form1 <- ~ I(year - 2004) + I(year - 2004)*country + (1|ttwa)
+form2 <- form1 %>% update(~ . + scale(total.pop) + scale(total.area) + scale(prop.inc))
+##Note:  form2 is form1 with more variables
+
+
+# Segregation indicies regression ------------------------------------------------
+##  
+dist.reg <- lmer(form1 %>% update(dist_nearest ~ .), reg.unmatch)
+dist.reg2 <- lmer(form2 %>% update(dist_nearest ~ .), reg.match)
+
+sub.reg <- lmer(form1 %>% update(suburb ~ .), reg.unmatch)
+sub.reg2 <- lmer(form2 %>% update(suburb ~ .), reg.match)
+
+di.reg <- lmer(form1 %>% update(di ~ .), reg.unmatch)
+di.reg2 <- lmer(form1 %>% update(di ~ .), reg.match)
+
+
+## Save table
+stargazer(dist.reg, dist.reg2,
+          sub.reg, sub.reg2,
+          di.reg, di.reg2,
+          type = 'text',
+          title = 'Model results for segregation',
+          dep.var.caption = 'Segregation index',
+          dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
+          covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
+          column.labels = rep(c('All', 'Matched'), 4),
+          omit = c('scale'),
+          no.space = T,
+          out = '../Results/ Segregation index model results.html',
+          keep.stat = c('n')
+)
+
+```
+
+##  Regression by index
+
+```{r}
+
+in.reg <- lmer(form1 %>% update(live.in ~ .), reg.unmatch)
+in.reg2 <- lmer(form2 %>% update(live.in ~ .), reg.match)
+
+crime.reg <- lmer(form1 %>% update(crime ~ .), reg.unmatch)
+crime.reg2 <- lmer(form2 %>% update(crime ~ .), reg.match)
+
+geo.reg <- lmer(form1 %>% update(geo ~ .), reg.unmatch)
+geo.reg2 <- lmer(form2 %>% update(geo ~ .), reg.match)
+
+pm25.reg <- lmer(form1 %>% update(pm25 ~ .), reg.unmatch)
+pm25.reg2 <- lmer(form2 %>% update(pm25 ~ .), reg.match)
+
+work.reg <- lmer(form1 %>% update(work ~ .), reg.unmatch)
+work.reg2 <- lmer(form2 %>% update(work ~ .), reg.match)
+
+reg.list <- list(in.reg, in.reg2,
+                 crime.reg, crime.reg2,
+                 geo.reg, geo.reg2,
+                 pm25.reg, pm25.reg2,
+                 work.reg, work.reg2)
+
+stargazer(reg.list, type = 'text',
+          title = 'Random effect model results',
+          dep.var.caption = 'Inequality index',
+          dep.var.labels = c('Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access'),
+          covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
+          column.labels = rep(c('All', 'Matched'), 5),
+          omit = c('scale'),
+          no.space = T,
+          notes = 'Note: Scottish crime results only available from 2006 onwards',
+          out = '../Results/ Inequality index model results.html',
+          keep.stat = c('n')
+          )
+
+```
+
+
+This calls R inline `r 1`
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
