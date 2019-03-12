@@ -6,9 +6,6 @@ output:
   pdf_document: default
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ##  Note: Please run the source file first and any additional library
 ```{r setup, message = F }
@@ -21,6 +18,27 @@ library(MatchIt, quietly = T)
 library(Matching, quietly = T)
 library(stargazer, quietly = T)
 library(lme4)
+```
+
+These are the graphing libraries and routines
+
+```{r}
+pkgs <- c('tidyverse', 'ggplot2', 'gridExtra')
+lapply(pkgs, require, character.only = T)
+
+hi.se <- function(x, t.val = 1.96 * sqrt(2) / 2){
+  return(mean(x) + t.val * sd(x) / sqrt(length(x)))
+}
+lo.se <- function(x, t.val = 1.96 * sqrt(2) / 2){
+  return(mean(x) - t.val * sd(x) / sqrt(length(x)))
+}
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
 ```
 
 
@@ -61,17 +79,28 @@ ttwa.tab <-
 
 ```
 
-##  2) Matching using Genmatch
-
-We have the full sample and now we further restrict to matched data. We match on 
-2004 / time invariant. First restrict to 2004.
+We can restrict our data to 2004 to compare pre- and post- matching results.
 ```{r}
 unmatch.tab <- 
   ttwa.tab %>% 
   filter(year == '2004')
+
+
+unmatch.country <-
+  unmatch.tab$country %>% table
+
+unmatch.country %>% print
+
 ```
 
-We can automatically try to ger the best match using genetic matching. Then we 
+After omitting we get `r unmatch.country[1]` English TTWAs and `r unmatch.country[2]` Scottish TTWAs.
+
+
+
+##  2) Matching using Genmatch
+
+We have the full sample and now we further restrict to matched data. We match on 
+2004 / time invariant. We can automatically try to ger the best match using genetic matching. Then we 
 can compare the stae of our matches. Genetic matchign will use the propensity score 
 in the matching by default (it generate own: i think from Sekhon's examples).
 
@@ -97,7 +126,7 @@ match.stats$nn
 
 ```
 
-We have a total of `match.stats$nn[1, 1]` English and `match.stats$nn[1, 2]` Scottish ttwa. In our final matched sample, we have `match.stats$nn[2, 1]` English TTWAs matched to`match.stats$nn[2, 2]` Scottish ttwas. 
+We have a total of `r match.stats$nn[1, 1]` English and `r match.stats$nn[1, 2]` Scottish ttwa. In our final matched sample, we have `r match.stats$nn[2, 1]` English TTWAs matched to`r match.stats$nn[2, 2]` Scottish ttwas. 
 
 ##  Comparing variance between indicies.
 
@@ -126,6 +155,150 @@ stargazer(cor.table,
           notes = 'Note: Scottish crime data excluded from calculation')
 
 ```
+
+
+##  Graphing trends over time
+
+```{r}
+rci.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = dist_nearest, colour = country)) + 
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Centralisation (RCI)') 
+#rci.gg
+#names(unmatched.tab)
+
+sub.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = suburb, colour = country)) + 
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Surburbanisation')
+#sub.gg
+
+di.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = di, colour = country)) + 
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Uneveness (DI)')
+
+## One big plot
+mylegend<-g_legend(rci.gg + theme(legend.direction = 'horizontal'))
+
+seg.grid <- grid.arrange(rci.gg + xlab('') + theme(legend.position="none"), 
+                         sub.gg + xlab('') + theme(legend.position="none"), 
+                         di.gg + xlab('')+ theme(legend.position="none"), 
+                         ncol = 2,
+                         #                    top = 'Changes in Segregation',
+                         left = 'Index',
+                         bottom = 'Year'
+)
+
+grid.arrange(mylegend, seg.grid, nrow=2,heights=c(1, 12),
+             top = 'Change in segregation (Error bars for annual comparison)')
+
+
+```
+
+##  Inequality indices
+
+```{r}
+
+house.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = live.in, colour = country)) + 
+  #  geom_point(position = 'jitter', alpha = 0.1) +
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               #               fun.args = (t.val = t.val = 1.96 * sqrt(2) / 2),
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean') +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Housing quality') 
+
+
+crime.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = crime, colour = country)) + 
+  #  geom_point(position = 'jitter', alpha = 0.1) +
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               #               fun.args = (t.val = 1.96 * sqrt(2) / 2),
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean') +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Crime')
+
+##
+geo.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = geo, colour = country)) + 
+  #  geom_point(position = 'jitter', alpha = 0.1) +
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               #               fun.args = (t.val = 1.96 * sqrt(2) / 2),
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean') +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Geographical access')
+
+air.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = pm25, colour = country)) + 
+  #  geom_point(position = 'jitter', alpha = 0.1) +
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               #               fun.args = (t.val = 1.96 * sqrt(2) / 2),
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Exposure to particulates') 
+
+work.gg <- 
+  ggplot(data = ttwa.tab, mapping =aes(x = year, y = work, colour = country)) + 
+  #  geom_point(position = 'jitter', alpha = 0.1) +
+  stat_summary(geom = 'errorbar', 
+               fun.ymax = hi.se, 
+               fun.ymin = lo.se,
+               #               fun.args = (t.val = t.val = 1.96 * sqrt(2) / 2),
+               alpha = 0.5) +
+  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  ylab('Access to employment') +
+  xlab('')# 
+
+##  Arrange ggplots
+
+mylegend<-g_legend(house.gg + theme(legend.direction = 'horizontal'))
+
+
+gfx <- grid.arrange(house.gg + xlab('') + theme(legend.position="none"), 
+                    crime.gg + xlab('') + theme(legend.position="none"), 
+                    geo.gg + xlab('')+ theme(legend.position="none"), 
+                    air.gg + xlab('') + theme(legend.position="none"), 
+                    work.gg + xlab('') + theme(legend.position="none"), 
+                    #             top = 'Changes in inequality and centralisation',
+                    left = 'Index',
+                    bottom = 'Year'
+)
+
+grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
+             top = 'Change in inequality (Error bars for annual comparison)')
+
+
+```
+
 
 
 ##  Regression models
@@ -226,9 +399,3 @@ stargazer(reg.list, type = 'text',
 
 This calls R inline `r 1`
 
-
-
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
