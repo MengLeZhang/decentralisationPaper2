@@ -233,6 +233,8 @@ imd <- imd %>% rename(zone = LSOA.code..2011.)
 pop <- google.drive.spatial %>% 
   paste0('/English IMDs/2015/File_6_ID_2015_Population_denominators.csv') %>% read.csv
 pop <- pop %>% rename(zone = LSOA.code..2011.)
+pop %>% head
+pop %>% summary
 
 ##  Let's merge it all; imd with spatial lookup
 imd <- pop %>% 
@@ -247,6 +249,7 @@ imd <- pop %>%
   left_join(pm25 %>% filter(type == 'lsoa11'), 
             by = 'zone') 
 
+
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ##  neat table 
 
@@ -256,7 +259,9 @@ neat.tab <-
          country = 'England',
          la = Local.Authority.District.name..2013..y,
          ttwa = ttwa11nm,
-         pop = Total.population..mid.2012..excluding.prisoners..x %>% as.numeric,
+         pop = Total.population..mid.2012..excluding.prisoners..x %>% 
+           gsub(',', '', x = .) %>% #decimals
+           as.numeric,
          inc.n = Income.Score..rate. * pop,
          noninc.n = pop - inc.n,
          dist_main = main_dist,
@@ -269,9 +274,11 @@ neat.tab <-
          work = accessB) %>%
   dplyr::select(zone, year:work, area)
 
-
+neat.tab 
 ##
 summary(neat.tab) #checks
+summary(neat.tab %>% filter(pop  %>% is.na)) #checks # no more missing
+neat.tab %>% filter(pop  %>% is.na) #some imd population data is just missing
 neat.tab %>% write.csv('Saved generated data/Formatted English data 2015.csv')
 rm(neat.tab)
 

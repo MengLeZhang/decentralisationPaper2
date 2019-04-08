@@ -17,6 +17,7 @@ zone2ttwa.lkp <-
 centres.imputed <-
   read.csv('Saved generated data/Imputed centres based on osmdata for England and Scotland.csv')
 
+
 ##  Find which TTWA they belong to-- so convert to sf and load in ttwa11
 centre.sf <- centres.imputed %>% 
   st_as_sf(coords = c('imputed_easting', 'imputed_northing'),
