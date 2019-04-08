@@ -19,37 +19,12 @@ ukgrid = "+init=epsg:27700" ## always remember the CRS
 ##  England is too big so solution is to cut the bound box in half
 bb_eng <- 
   getbb('england', featuretype = 'country') ## works just search for country; this is full extent checked
-##  NOTE : BIG ISSUE DISCOVERED -- We need to split the country in half not quarters
-### Had an issue where I did that!! Now we split it in quarters using Y
-
-quart_eng_y <- (bb_eng[2, 2] - bb_eng[2, 1]) / 4
-
-bb_eng_1 <- bb_eng
-bb_eng_1[2, 2] <- bb_eng[2, 1] # Not need but just wanted to be explcity
-bb_eng_1[2, 2] <- bb_eng[2, 1] + quart_eng_y
-
-bb_eng_2 <- bb_eng
-bb_eng_2[2, 1] <- bb_eng[2, 1] + quart_eng_y
-bb_eng_2[2, 2] <- bb_eng[2, 1] + quart_eng_y * 2
-
-bb_eng_3 <- bb_eng
-bb_eng_3[2, 1] <- bb_eng[2, 1] + quart_eng_y * 2
-bb_eng_3[2, 2] <- bb_eng[2, 1] + quart_eng_y * 3
-
-bb_eng_4 <- bb_eng
-bb_eng_4[2, 1] <- bb_eng[2, 1] + quart_eng_y * 3
-bb_eng_4[2, 2] <- bb_eng[2, 1] + quart_eng_y * 4
-
-
-bb_eng_1
-bb_eng_2
 
 ### 
 bb_scot <- 
   getbb('scotland', featuretype = 'country') ## works just search for country; this is full extent checked
 
-bb_list <- list(bb_eng_1, bb_eng_2,
-                bb_eng_3, bb_eng_4,
+bb_list <- list(bb_eng,
                 bb_scot) # into one big list
 
 ##  Since the routine from previous attempts is so well routine we have made
@@ -60,13 +35,14 @@ bb_list <- list(bb_eng_1, bb_eng_2,
 
 ##  Let's just go and do this as a function; default we use value to name
 extract.sf.osm <- function(bbox, value, key = 'place', crs = ukgrid){
-  out <- opq(bbox = bbox) %>% 
+  out <- opq(bbox = bbox,
+             timeout = 120 ) %>%  # wait 2 minutes before timing out 
     add_osm_feature(key = key, value = value) %>%
     osmdata_sf
 
   out <- out$osm_points %>% 
     mutate(type = value) %>%
-    select.sf(osm_id, name, type) %>%
+    sf:::select.sf(osm_id, name, type) %>%
     st_transform(crs = crs)
   
   print('Waiting 10 seconds before returning')

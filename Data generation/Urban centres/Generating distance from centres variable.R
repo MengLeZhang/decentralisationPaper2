@@ -14,30 +14,9 @@ zone2ttwa.lkp <-
 ##  coords are X and Y
 
 # 2) Load in the centres data ---------------------------------------------
-
-##  This is changed to use paper 1 data for England!! Change in future----
 centres.imputed <-
   read.csv('Saved generated data/Imputed centres based on osmdata for England and Scotland.csv')
 
-centres.US <- 
-  'file:///C:/Users/Meng Le Zheng/Documents/SMI-paper-1-RCI-/Working analysis files/Imputed centres based on osmdata.csv' %>%
-  read.csv
-
-##  Taking the common data out
-common <- base::intersect(centres.imputed$name, centres.US$name)
-names(centres.imputed) %in% names(centres.US)
-names(centres.imputed)
-names(centres.US)
-
-##  now data
-centres.imputed <- 
-  bind_rows(
-    centres.imputed %>% filter(!(name %in% common)),
-    centres.US %>% filter( (name %in% common) )
-  )
-
-
-##  END of change------
 
 ##  Find which TTWA they belong to-- so convert to sf and load in ttwa11
 centre.sf <- centres.imputed %>% 
