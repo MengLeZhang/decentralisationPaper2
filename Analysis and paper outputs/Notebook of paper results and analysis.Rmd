@@ -72,7 +72,9 @@ ttwa.tab <-
   filter(!(ttwa %in% isles.ttwa)) %>% #nor isle
   ##  We need to take these out first since crossborder ttwa are duplicated
   group_by(ttwa) %>%
-  mutate(pop04 = total.pop[year == '2004']) %>% #variable for pop in 2004
+  mutate(
+    pop04 = total.pop[year == '2004']) %>% #variable for pop in 2004
+  mutate(dist_nearest04 = dist_nearest[year == '2004']) %>%
   ungroup %>%
   filter(pop04 > 70000) %>% ## over 70k in 2004
   filter(!is.na(ttwa)) ##finally no missign ttwa as this code is just due to our previous routine
@@ -84,7 +86,6 @@ We can restrict our data to 2004 to compare pre- and post- matching results.
 unmatch.tab <- 
   ttwa.tab %>% 
   filter(year == '2004')
-
 
 unmatch.country <-
   unmatch.tab$country %>% table
@@ -106,13 +107,15 @@ in the matching by default (it generate own: i think from Sekhon's examples).
 
 ```{r, results= 'hide'}
 ## We need to hide all the print statement caused by genmatch
-match.form <- I(country == 'Scotland') ~ total.pop + total.area + prop.inc
+match.form <- I(country == 'Scotland') ~ total.pop + total.area + dist_nearest04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
-          data = unmatch.tab %>% dplyr::select(ttwa:prop.inc),
+          data = unmatch.tab %>% dplyr::select(ttwa:total.area, dist_nearest04),
           method = 'genetic')
+
+
           
 match.stats <-
   match.res %>% summary
@@ -322,20 +325,20 @@ reg.match$year %>% table # okay so no missing
 ```{r}
 ##  The multilevel models 
 form1 <- ~ I(year - 2004) + I(year - 2004)*country + (1|ttwa)
-form2 <- form1 %>% update(~ . + scale(total.pop) + scale(total.area) + scale(prop.inc))
+form2 <- form1 %>% update(. ~ . + scale(total.pop) + scale(total.area) + dist_nearest04)
 ##Note:  form2 is form1 with more variables
-
 
 # Segregation indicies regression ------------------------------------------------
 ##  
 dist.reg <- lmer(form1 %>% update(dist_nearest ~ .), reg.unmatch)
 dist.reg2 <- lmer(form2 %>% update(dist_nearest ~ .), reg.match)
 
+
 sub.reg <- lmer(form1 %>% update(suburb ~ .), reg.unmatch)
 sub.reg2 <- lmer(form2 %>% update(suburb ~ .), reg.match)
 
 di.reg <- lmer(form1 %>% update(di ~ .), reg.unmatch)
-di.reg2 <- lmer(form1 %>% update(di ~ .), reg.match)
+di.reg2 <- lmer(form2 %>% update(di ~ .), reg.match)
 
 
 ## Save table
@@ -347,8 +350,8 @@ stargazer(dist.reg, dist.reg2,
           dep.var.caption = 'Segregation index',
           dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
-          column.labels = rep(c('All', 'Matched'), 4),
-          omit = c('scale'),
+          column.labels = rep(c('All', 'Matched'), 3),
+          omit = c('scale', 'dist_nearest04'),
           no.space = T,
           out = '../Results/ Segregation index model results.html',
           keep.stat = c('n')
@@ -387,7 +390,7 @@ stargazer(reg.list, type = 'text',
           dep.var.labels = c('Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access'),
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
           column.labels = rep(c('All', 'Matched'), 5),
-          omit = c('scale'),
+          omit = c('scale', 'dist_nearest04'),
           no.space = T,
           notes = 'Note: Scottish crime results only available from 2006 onwards',
           out = '../Results/ Inequality index model results.html',
@@ -396,6 +399,38 @@ stargazer(reg.list, type = 'text',
 
 ```
 
+We can also fix the amenities that vary over time
 
-This calls R inline `r 1`
+```{r fixed}
+
+fixed_crime.reg <- lmer(form1 %>% update(crime_fixed ~ .), reg.unmatch)
+fixed_crime.reg2 <- lmer(form2 %>% update(crime_fixed ~ .), reg.match)
+fixed_geo.reg <- lmer(form1 %>% update(geo_fixed ~ .), reg.unmatch)
+fixed_geo.reg2 <- lmer(form2 %>% update(geo_fixed ~ .), reg.match)
+
+fixed_pm25.reg <- lmer(form1 %>% update(pm25_fixed ~ .), reg.unmatch)
+fixed_pm25.reg2 <- lmer(form2 %>% update(pm25_fixed ~ .), reg.match)
+
+fixed_reg.list <- 
+  list(
+    fixed_crime.reg, fixed_crime.reg2,
+    fixed_geo.reg, fixed_geo.reg2,
+    fixed_pm25.reg, fixed_pm25.reg2
+  )
+
+stargazer(fixed_reg.list, type = 'text',
+          title = 'Random effect model results',
+          dep.var.caption = 'Inequality index',
+          dep.var.labels = c('Crime', 'Geo. access', 'Air pollution'),
+          covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
+          column.labels = rep(c('All', 'Matched'), 3),
+          omit = c('scale', 'dist_nearest04'),
+          no.space = T,
+          notes = 'Note: Scottish crime results uses 2006 SIMD values',
+          out = '../Results/ Inequality index model results (fixed).html',
+          keep.stat = c('n')
+          )
+
+```
+
 
