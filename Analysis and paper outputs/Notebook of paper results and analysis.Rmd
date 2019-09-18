@@ -379,6 +379,59 @@ stargazer(dist.reg2,
 
 ```
 
+##  Comparison between segregation by social housing
+
+```{r}
+ttwa.tab_HH <- '../Results/Duncan index by TTWA Households.csv' %>% read.csv(stringsAsFactors = F)
+compare.tab <-
+  ttwa.tab %>%
+  left_join(ttwa.tab_HH,
+            by = c('ttwa', 'country', 'year'),
+            suffix = c('.inc', '.HH')
+  )
+
+
+compare.tab %>% 
+  group_by(country, year) %>%
+  summarise(rci_HH =  dist_nearest.HH %>% mean,
+            di.HH = di.HH %>% mean,
+            suburb.HH = suburb.HH %>% mean)
+
+
+##  Correlation between social housing and decentralisaiton at 2004
+## Data prep
+
+summary.tab <-
+  compare.tab %>% 
+  group_by(ttwa) %>%
+  summarise(
+    change_rci.inc = dist_nearest.inc[year >= 2015] - dist_nearest.inc[year == 2004],
+    change_rci.HH = dist_nearest.HH[year >= 2015] - dist_nearest.HH[year == 2004],
+
+    change_suburb.inc = suburb.inc[year >= 2015] - suburb.inc[year == 2004],
+    change_suburb.HH = suburb.HH[year >= 2015] - suburb.HH[year == 2004],
+    
+        
+    change_di.inc = di.inc[year >= 2015] - di.inc[year == 2004],
+    change_di.HH = di.HH[year >= 2015] - di.HH[year == 2004],
+    
+  )
+
+##  Over time correlation
+summary.tab[-1] %>%  cor(use= "pairwise.complete.obs", method = 'spearman') #mega low 
+
+##  Correlation at 2004
+compare.tab %>% 
+  filter(year == '2004') %>% 
+  dplyr::select(starts_with('dist_nearest.'), starts_with('suburb'), starts_with('di.')) %>%
+  cor(use= "pairwise.complete.obs", method = 'spearman')
+
+
+```
+
+
+
+
 ##  Regression by index
 
 ```{r}
