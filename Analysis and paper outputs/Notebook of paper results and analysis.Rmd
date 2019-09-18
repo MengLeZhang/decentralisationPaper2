@@ -318,6 +318,9 @@ temp.match <- temp.match %>% dplyr::select(ttwa, weights)
 reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
 
 reg.match$year %>% table # okay so no missing
+
+##  We need to use weights in our regression routine for matched data so we can only access the latest years
+
 ```
 
 
@@ -325,37 +328,54 @@ reg.match$year %>% table # okay so no missing
 ```{r}
 ##  The multilevel models 
 form1 <- ~ I(year - 2004) + I(year - 2004)*country + (1|ttwa)
-form2 <- form1 %>% update(. ~ . + scale(total.pop) + scale(total.area) + dist_nearest04)
+form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 ## We omit the I(year - 2004) variable since last 
+##  years 2015 or 2016 is associated with country
 ##Note:  form2 is form1 with more variables
 
 # Segregation indicies regression ------------------------------------------------
 ##  
 dist.reg <- lmer(form1 %>% update(dist_nearest ~ .), reg.unmatch)
-dist.reg2 <- lmer(form2 %>% update(dist_nearest ~ .), reg.match)
+dist.reg2 <- lm(form2 %>% update(dist_nearest ~ .), reg.match, weights = weights)
 
 
 sub.reg <- lmer(form1 %>% update(suburb ~ .), reg.unmatch)
-sub.reg2 <- lmer(form2 %>% update(suburb ~ .), reg.match)
+sub.reg2 <- lm(form2 %>% update(suburb ~ .), reg.match, weights = weights)
 
 di.reg <- lmer(form1 %>% update(di ~ .), reg.unmatch)
-di.reg2 <- lmer(form2 %>% update(di ~ .), reg.match)
+di.reg2 <- lm(form2 %>% update(di ~ .), reg.match, weights = weights)
 
 
 ## Save table
-stargazer(dist.reg, dist.reg2,
-          sub.reg, sub.reg2,
-          di.reg, di.reg2,
+stargazer(dist.reg,
+          sub.reg, 
+          di.reg, 
           type = 'text',
-          title = 'Model results for segregation',
+          title = 'Model results for segregation (unmatched random effects)',
           dep.var.caption = 'Segregation index',
-          dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
+#          dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
-          column.labels = rep(c('All', 'Matched'), 3),
+          column.labels = c('RCI', 'Suburbanisation', 'DI'),
           omit = c('scale', 'dist_nearest04'),
           no.space = T,
-          out = '../Results/ Segregation index model results.html',
+          out = '../Results/ Segregation index model results unmatched.html',
           keep.stat = c('n')
 )
+
+stargazer(dist.reg2,
+          sub.reg2, 
+          di.reg2, 
+          type = 'text',
+          title = 'Model results for segregation (matched OLS)',
+          dep.var.caption = 'Segregation index',
+#          dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
+          covariate.labels = c('Scotland', 'Constant'),
+          column.labels = c('RCI', 'Suburbanisation', 'DI'),
+          omit = c('scale', 'dist_nearest04'),
+          no.space = T,
+          out = '../Results/ Segregation index model results matched.html',
+          keep.stat = c('n')
+)
+
 
 ```
 
