@@ -68,4 +68,33 @@ ttwa.tab %>% write.csv('Results/Duncan index by TTWA.csv')
 cor(ttwa.tab[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
 ## Large correlation between ranks for crime etc
 
+##  2) Results using segregation by housing tenure ----
+ttwa.tab_HH <- 
+  combined.tab %>%
+  group_by(year, ttwa, country) %>% ## we want to calculate stats by year, ttwa and country
+  summarise(total.pop = sum(pop), #name of summary statistic and how its calculated; i.e total.pop is sum of pop
+            total.area = sum(area),#,
+            prop.inc = sum(social.HH) / sum(pop),
+            dist_main = dindex(x = nonsocial.HH, y = social.HH, sort.var = dist_main), #name of summary statistic and how its calculated
+            dist_nearest = dindex(x = nonsocial.HH, y = social.HH, sort.var = dist_nearest),
+            di = sum( abs((social.HH / sum(social.HH)) - (nonsocial.HH / sum(nonsocial.HH))) ) / 2,
+            concen = sum( abs((social.HH / sum(social.HH)) - (area / sum(area))) ) / 2,
+            live.in = dindex(x = nonsocial.HH, y = social.HH, sort.var = live.in),
+            crime = dindex(x = nonsocial.HH, y = social.HH, sort.var = crime),
+            geo = dindex(x = nonsocial.HH, y = social.HH, sort.var = geo),
+            work = dindex(x = nonsocial.HH, y = social.HH, sort.var = work),
+            pm25 = dindex(x = nonsocial.HH, y = social.HH, sort.var = pm25),
+            suburb = dindex(x = nonsocial.HH, y = social.HH, sort.var = -1 * pop / area),
+            ##  Fixed Dindex            
+            crime_fixed = dindex(x = nonsocial.HH, y = social.HH, sort.var = crime_fixed),
+            geo_fixed = dindex(x = nonsocial.HH, y = social.HH, sort.var = geo_fixed),
+            pm25_fixed = dindex(x = nonsocial.HH, y = social.HH, sort.var = pm25_fixed)
+            
+  )
+
+
+ttwa.tab_HH %>% write.csv('Results/Duncan index by TTWA Households.csv')
+cor(ttwa.tab_HH[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
+
+
 ##  End
