@@ -26,7 +26,8 @@ dist <-
 
 pm25 <- 'Saved generated data/Annual avg air pollution dz and lsoa.csv' %>%
   read.csv
-pm25 %>% head
+
+allTenure <- 'Saved generated data/ census HH tenure lookup.csv' %>% read.csv
 
 
 ##  1) 2004 English data -----
@@ -73,7 +74,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'lsoa01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'lsoa01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
+
 
 imd %>% summary # fine
 
@@ -88,6 +92,10 @@ neat.tab <-
          pop = Total.population,
          inc.n = INCOME.SCORE * Total.population,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = RANK.OF.CRIME.AND.DISORDER.SCORE..where.1.is.most.deprived.,
@@ -142,7 +150,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'lsoa01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'lsoa01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
+
 
 imd %>% summary # fine
 
@@ -157,6 +168,10 @@ neat.tab <-
          pop = Total.population..mid.2005..excluding.prisoners.,
          inc.n = INCOME.SCORE * pop,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = RANK.OF.CRIME.AND.DISORDER.SCORE..where.1.is.most.deprived.,
@@ -194,7 +209,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'lsoa01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'lsoa01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ##  neat table 
@@ -208,6 +226,10 @@ neat.tab <-
          pop = Total.population..mid.2008..excluding.prisoners.,
          inc.n = INCOME.SCORE * pop,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = CRIME.AND.DISORDER.SCORE %>% {-1 * .} %>% rank,
@@ -247,7 +269,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'lsoa11'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'lsoa11'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2011'),
+            by = 'zone')
+
 
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -264,6 +289,11 @@ neat.tab <-
            as.numeric,
          inc.n = Income.Score..rate. * pop,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = Crime.Rank..where.1.is.most.deprived.,
