@@ -26,13 +26,6 @@ These are the graphing libraries and routines
 pkgs <- c('tidyverse', 'ggplot2', 'gridExtra')
 lapply(pkgs, require, character.only = T)
 
-hi.se <- function(x, t.val = 1.96 * sqrt(2) / 2){
-  return(mean(x) + t.val * sd(x) / sqrt(length(x)))
-}
-lo.se <- function(x, t.val = 1.96 * sqrt(2) / 2){
-  return(mean(x) - t.val * sd(x) / sqrt(length(x)))
-}
-
 g_legend<-function(a.gplot){
   tmp <- ggplot_gtable(ggplot_build(a.gplot))
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
@@ -161,39 +154,72 @@ stargazer(cor.table,
 
 
 ##  Graphing trends over time
+# Plots and generic plotting functions
 
 ```{r}
+##  We want to summarise the table stats before passign to ggplot
+
+t.val = 1.96 * sqrt(2) / 2 # Set level of the tvalue
+
+summarise_mydata <-
+  function(summariseThis = NULL, ## This is the variable to summarise by
+           data = ttwa.tab
+  ){
+    
+  ## Goal: Take in data and a name for the variable we want to summarise (called summarise this)
+  ##  and end up with a summary table by county and year for:
+  ##  mean of summariseThis
+  ##  error bars that reflect the interyear variance and SE of TTWAs (so we have
+  ##  partition errors var(y|ttwa)
+  
+  tempData <- data
+  tempData$tempY <- data[[summariseThis]]
+    
+  form <- summariseThis %>% paste('~ ttwa') %>% as.formula
+  
+  
+  residualSD <-
+      lm(form, tempData) %>% residuals %>% sd 
+
+  summarisedForGGplot <-
+  tempData %>% 
+  group_by(country, year) %>%
+  summarise(n = length(tempY),
+            y = mean(tempY),
+            ymin = y - t.val * (residualSD/ sqrt(n)), 
+            ymax = y + t.val * (residualSD/ sqrt(n)) 
+  )
+  
+  return(summarisedForGGplot)
+  }  
+
+```
+
+##  Trends in segregation
+
+
+```{r}
+
 rci.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = dist_nearest, colour = country)) + 
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('dist_nearest'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Centralisation (RCI)') 
-#rci.gg
-#names(unmatched.tab)
 
 sub.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = suburb, colour = country)) + 
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('suburb'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Surburbanisation')
 #sub.gg
 
 di.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = di, colour = country)) + 
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('di'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Uneveness (DI)')
 
 ## One big plot
@@ -214,70 +240,47 @@ grid.arrange(mylegend, seg.grid, nrow=2,heights=c(1, 12),
 
 ```
 
+
 ##  Inequality indices
 
 ```{r}
 
 house.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = live.in, colour = country)) + 
-  #  geom_point(position = 'jitter', alpha = 0.1) +
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               #               fun.args = (t.val = t.val = 1.96 * sqrt(2) / 2),
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean') +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('live.in'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Housing quality') 
 
 
 crime.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = crime, colour = country)) + 
-  #  geom_point(position = 'jitter', alpha = 0.1) +
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               #               fun.args = (t.val = 1.96 * sqrt(2) / 2),
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean') +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('crime'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Crime')
 
 ##
 geo.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = geo, colour = country)) + 
-  #  geom_point(position = 'jitter', alpha = 0.1) +
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               #               fun.args = (t.val = 1.96 * sqrt(2) / 2),
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean') +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('geo'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Geographical access')
 
 air.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = pm25, colour = country)) + 
-  #  geom_point(position = 'jitter', alpha = 0.1) +
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               #               fun.args = (t.val = 1.96 * sqrt(2) / 2),
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('pm25'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
   ylab('Exposure to particulates') 
 
 work.gg <- 
-  ggplot(data = ttwa.tab, mapping =aes(x = year, y = work, colour = country)) + 
-  #  geom_point(position = 'jitter', alpha = 0.1) +
-  stat_summary(geom = 'errorbar', 
-               fun.ymax = hi.se, 
-               fun.ymin = lo.se,
-               #               fun.args = (t.val = t.val = 1.96 * sqrt(2) / 2),
-               alpha = 0.5) +
-  stat_summary(geom = 'line', fun.y = 'mean', size = 1) +
-  geom_hline(yintercept = 0, alpha = 0.5) +
+  ggplot(data = summarise_mydata('work'), 
+         mapping =aes(x = year, y = y, colour = country)) + 
+  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
+  geom_line(size = 1) +
+
   ylab('Access to employment') +
   xlab('')# 
 
