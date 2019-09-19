@@ -352,7 +352,7 @@ stargazer(dist.reg,
           type = 'text',
           title = 'Model results for segregation (unmatched random effects)',
           dep.var.caption = 'Segregation index',
-#          dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
+          dep.var.labels.include = F,
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
           column.labels = c('RCI', 'Suburbanisation', 'DI'),
           omit = c('scale', 'dist_nearest04'),
@@ -367,7 +367,7 @@ stargazer(dist.reg2,
           type = 'text',
           title = 'Model results for segregation (matched OLS)',
           dep.var.caption = 'Segregation index',
-#          dep.var.labels = c('RCI', 'Suburbanisation', 'DI'),
+          dep.var.labels.include = F,
           covariate.labels = c('Scotland', 'Constant'),
           column.labels = c('RCI', 'Suburbanisation', 'DI'),
           omit = c('scale', 'dist_nearest04'),
@@ -413,7 +413,7 @@ summary.tab <-
     
         
     change_di.inc = di.inc[year >= 2015] - di.inc[year == 2004],
-    change_di.HH = di.HH[year >= 2015] - di.HH[year == 2004],
+    change_di.HH = di.HH[year >= 2015] - di.HH[year == 2004]
     
   )
 
@@ -437,32 +437,27 @@ compare.tab %>%
 ```{r}
 
 in.reg <- lmer(form1 %>% update(live.in ~ .), reg.unmatch)
-in.reg2 <- lmer(form2 %>% update(live.in ~ .), reg.match)
 
 crime.reg <- lmer(form1 %>% update(crime ~ .), reg.unmatch)
-crime.reg2 <- lmer(form2 %>% update(crime ~ .), reg.match)
 
 geo.reg <- lmer(form1 %>% update(geo ~ .), reg.unmatch)
-geo.reg2 <- lmer(form2 %>% update(geo ~ .), reg.match)
 
 pm25.reg <- lmer(form1 %>% update(pm25 ~ .), reg.unmatch)
-pm25.reg2 <- lmer(form2 %>% update(pm25 ~ .), reg.match)
 
 work.reg <- lmer(form1 %>% update(work ~ .), reg.unmatch)
-work.reg2 <- lmer(form2 %>% update(work ~ .), reg.match)
 
-reg.list <- list(in.reg, in.reg2,
-                 crime.reg, crime.reg2,
-                 geo.reg, geo.reg2,
-                 pm25.reg, pm25.reg2,
-                 work.reg, work.reg2)
+reg.list <- list(in.reg, 
+                 crime.reg, 
+                 geo.reg, 
+                 pm25.reg,
+                 work.reg)
 
 stargazer(reg.list, type = 'text',
           title = 'Random effect model results',
           dep.var.caption = 'Inequality index',
           dep.var.labels = c('Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access'),
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
-          column.labels = rep(c('All', 'Matched'), 5),
+#          column.labels = rep(c('All', 'Matched'), 5),
           omit = c('scale', 'dist_nearest04'),
           no.space = T,
           notes = 'Note: Scottish crime results only available from 2006 onwards',
@@ -472,31 +467,33 @@ stargazer(reg.list, type = 'text',
 
 ```
 
-We can also fix the amenities that vary over time
+We can also fix the amenities that vary over time to monitor sensitivity. We can only compare fixed stats for years up
+to 2015 / 2016. So fewer years leads to smaller N in the random effects model that use years observation.
 
 ```{r fixed}
 
 fixed_crime.reg <- lmer(form1 %>% update(crime_fixed ~ .), reg.unmatch)
-fixed_crime.reg2 <- lmer(form2 %>% update(crime_fixed ~ .), reg.match)
+
 fixed_geo.reg <- lmer(form1 %>% update(geo_fixed ~ .), reg.unmatch)
-fixed_geo.reg2 <- lmer(form2 %>% update(geo_fixed ~ .), reg.match)
 
 fixed_pm25.reg <- lmer(form1 %>% update(pm25_fixed ~ .), reg.unmatch)
-fixed_pm25.reg2 <- lmer(form2 %>% update(pm25_fixed ~ .), reg.match)
 
 fixed_reg.list <- 
   list(
-    fixed_crime.reg, fixed_crime.reg2,
-    fixed_geo.reg, fixed_geo.reg2,
-    fixed_pm25.reg, fixed_pm25.reg2
+    crime.reg, fixed_crime.reg,
+    geo.reg, fixed_geo.reg, 
+    pm25.reg, fixed_pm25.reg
   )
 
 stargazer(fixed_reg.list, type = 'text',
           title = 'Random effect model results',
-          dep.var.caption = 'Inequality index',
-          dep.var.labels = c('Crime', 'Geo. access', 'Air pollution'),
+          dep.var.caption = 'Inequality index (comparing varying vs fixed crime, access and pollution)',
+          column.labels = c('Crime', 'Geo. access', 'Air pollution'),
+          column.separate = c(2, 2, 2),
+          dep.var.labels.include = F,
+          
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
-          column.labels = rep(c('All', 'Matched'), 3),
+         add.lines =  list( c('Fixed values at 2004', rep(c('F', 'T'), 3)) ),
           omit = c('scale', 'dist_nearest04'),
           no.space = T,
           notes = 'Note: Scottish crime results uses 2006 SIMD values',
