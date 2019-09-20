@@ -58,7 +58,6 @@ isles.ttwa <- c(
 #islands
 
 
-
 ttwa.tab <- 
   ttwa.tab %>% 
   filter(!(ttwa %in% crossborder.ttwa)) %>% #not a cross border ttwa
@@ -68,6 +67,7 @@ ttwa.tab <-
   mutate(
     pop04 = total.pop[year == '2004']) %>% #variable for pop in 2004
   mutate(dist_nearest04 = dist_nearest[year == '2004']) %>%
+  mutate(di04 = di[year == '2004']) %>%
   ungroup %>%
   filter(pop04 > 70000) %>% ## over 70k in 2004
   filter(!is.na(ttwa)) ##finally no missign ttwa as this code is just due to our previous routine
@@ -100,12 +100,13 @@ in the matching by default (it generate own: i think from Sekhon's examples).
 
 ```{r, results= 'hide'}
 ## We need to hide all the print statement caused by genmatch
-match.form <- I(country == 'Scotland') ~ total.pop + total.area + dist_nearest04
+match.form <- I(country == 'Scotland') ~ total.pop + total.area + dist_nearest04 + di04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
-          data = unmatch.tab %>% dplyr::select(ttwa:total.area, dist_nearest04),
+          ratio = 2,
+          data = unmatch.tab %>% dplyr::select(ttwa:total.area, dist_nearest04, di04),
           method = 'genetic')
 
 
@@ -118,7 +119,7 @@ match.stats <-
 Now we can try to summarise the matching results. 
 
 ```{r}
-match.stats$nn
+match.stats %>% print
 
 ```
 
@@ -133,14 +134,14 @@ cor.df <-
   unmatch.tab %>% filter(year == 2004) 
 
 ##  Making the correlation table 
-cor.vars <- c('dist_nearest', 'suburb', 'di','live.in', 'crime', 'geo', 'pm25', 'work')
+cor.vars <- c('dist_nearest', 'di','live.in', 'crime', 'geo', 'pm25', 'work')
 cor.table <- cor(cor.df %>% dplyr::select(cor.vars), 
                  method = 'spearman', 
                  use = 'pairwise.complete.obs') # only modest correlation
 
 ##  Formatting it for stargazer
 cor.table[cor.table %>% upper.tri(diag = T)] <- NA
-ind.nms <- c('RCI', 'Suburb. Index', 'Diss. Index', 'Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access')
+ind.nms <- c('RCI', 'Diss. Index', 'Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access')
 rownames(cor.table) <- ind.nms
 colnames(cor.table) <- ind.nms
 
@@ -207,14 +208,6 @@ rci.gg <-
   geom_line(size = 1) +
   ylab('Centralisation (RCI)') 
 
-sub.gg <- 
-  ggplot(data = summarise_mydata('suburb'), 
-         mapping =aes(x = year, y = y, colour = country)) + 
-  geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
-  geom_line(size = 1) +
-  ylab('Surburbanisation')
-#sub.gg
-
 di.gg <- 
   ggplot(data = summarise_mydata('di'), 
          mapping =aes(x = year, y = y, colour = country)) + 
@@ -226,7 +219,6 @@ di.gg <-
 mylegend<-g_legend(rci.gg + theme(legend.direction = 'horizontal'))
 
 seg.grid <- grid.arrange(rci.gg + xlab('') + theme(legend.position="none"), 
-                         sub.gg + xlab('') + theme(legend.position="none"), 
                          di.gg + xlab('')+ theme(legend.position="none"), 
                          ncol = 2,
                          #                    top = 'Changes in Segregation',
@@ -320,7 +312,9 @@ head(temp.match)
 temp.match <- temp.match %>% dplyr::select(ttwa, weights)
 reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
 
-reg.match$year %>% table # okay so no missing
+
+reg.match <-
+  reg.match %>% filter(year %in% c('2015', '2016'))
 
 ##  We need to use weights in our regression routine for matched data so we can only access the latest years
 
@@ -331,7 +325,7 @@ reg.match$year %>% table # okay so no missing
 ```{r}
 ##  The multilevel models 
 form1 <- ~ I(year - 2004) + I(year - 2004)*country + (1|ttwa)
-form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 ## We omit the I(year - 2004) variable since last 
+form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 + di04 ## We omit the I(year - 2004) variable since last 
 ##  years 2015 or 2016 is associated with country
 ##Note:  form2 is form1 with more variables
 
@@ -340,40 +334,34 @@ form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 ## We
 dist.reg <- lmer(form1 %>% update(dist_nearest ~ .), reg.unmatch)
 dist.reg2 <- lm(form2 %>% update(dist_nearest ~ .), reg.match, weights = weights)
 
-
-sub.reg <- lmer(form1 %>% update(suburb ~ .), reg.unmatch)
-sub.reg2 <- lm(form2 %>% update(suburb ~ .), reg.match, weights = weights)
-
 di.reg <- lmer(form1 %>% update(di ~ .), reg.unmatch)
 di.reg2 <- lm(form2 %>% update(di ~ .), reg.match, weights = weights)
 
 
 ## Save table
 stargazer(dist.reg,
-          sub.reg, 
           di.reg, 
           type = 'text',
           title = 'Model results for segregation (unmatched random effects)',
           dep.var.caption = 'Segregation index',
           dep.var.labels.include = F,
           covariate.labels = c('Year (2004 = 0)', 'Scotland', 'Year:Scotland'),
-          column.labels = c('RCI', 'Suburbanisation', 'DI'),
-          omit = c('scale', 'dist_nearest04'),
+          column.labels = c('RCI', 'DI'),
+          omit = c('scale', 'dist_nearest04', 'di04'),
           no.space = T,
           out = '../Results/ Segregation index model results unmatched.html',
           keep.stat = c('n')
 )
 
 stargazer(dist.reg2,
-          sub.reg2, 
           di.reg2, 
           type = 'text',
           title = 'Model results for segregation (matched OLS)',
           dep.var.caption = 'Segregation index',
           dep.var.labels.include = F,
           covariate.labels = c('Scotland', 'Constant'),
-          column.labels = c('RCI', 'Suburbanisation', 'DI'),
-          omit = c('scale', 'dist_nearest04'),
+          column.labels = c('RCI', 'DI'),
+          omit = c('scale', 'dist_nearest04', 'di04'),
           no.space = T,
           out = '../Results/ Segregation index model results matched.html',
           keep.stat = c('n')
@@ -397,8 +385,7 @@ compare.tab <-
 compare.tab %>% 
   group_by(country, year) %>%
   summarise(rci_HH =  dist_nearest.HH %>% mean,
-            di.HH = di.HH %>% mean,
-            suburb.HH = suburb.HH %>% mean)
+            di.HH = di.HH %>% mean)
 
 
 ##  Correlation between social housing and decentralisaiton at 2004
@@ -411,10 +398,6 @@ summary.tab <-
     change_rci.inc = dist_nearest.inc[year >= 2015] - dist_nearest.inc[year == 2004],
     change_rci.HH = dist_nearest.HH[year >= 2015] - dist_nearest.HH[year == 2004],
 
-    change_suburb.inc = suburb.inc[year >= 2015] - suburb.inc[year == 2004],
-    change_suburb.HH = suburb.HH[year >= 2015] - suburb.HH[year == 2004],
-    
-        
     change_di.inc = di.inc[year >= 2015] - di.inc[year == 2004],
     change_di.HH = di.HH[year >= 2015] - di.HH[year == 2004]
     
@@ -426,7 +409,7 @@ summary.tab[-1] %>%  cor(use= "pairwise.complete.obs", method = 'spearman') #meg
 ##  Correlation at 2004
 compare.tab %>% 
   filter(year == '2004') %>% 
-  dplyr::select(starts_with('dist_nearest.'), starts_with('suburb'), starts_with('di.')) %>%
+  dplyr::select(starts_with('dist_nearest.'), starts_with('di.')) %>%
   cor(use= "pairwise.complete.obs", method = 'spearman')
 
 
