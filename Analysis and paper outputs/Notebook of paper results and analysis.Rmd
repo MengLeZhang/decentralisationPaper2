@@ -242,7 +242,7 @@ house.gg <-
          mapping =aes(x = year, y = y, colour = country)) + 
   geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
   geom_line(size = 1) +
-  ylab('Housing quality') 
+  ylab('Housing') 
 
 
 crime.gg <- 
@@ -258,14 +258,14 @@ geo.gg <-
          mapping =aes(x = year, y = y, colour = country)) + 
   geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
   geom_line(size = 1) +
-  ylab('Geographical access')
+  ylab('Geo. access')
 
 air.gg <- 
   ggplot(data = summarise_mydata('pm25'), 
          mapping =aes(x = year, y = y, colour = country)) + 
   geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
   geom_line(size = 1) +
-  ylab('Exposure to particulates') 
+  ylab('Pollution') 
 
 work.gg <- 
   ggplot(data = summarise_mydata('work'), 
@@ -273,7 +273,7 @@ work.gg <-
   geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
   geom_line(size = 1) +
 
-  ylab('Access to employment') +
+  ylab('Work access') +
   xlab('')# 
 
 ##  Arrange ggplots
