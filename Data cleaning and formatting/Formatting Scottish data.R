@@ -31,7 +31,8 @@ dist <-
 
 pm25 <- 'Saved generated data/Annual avg air pollution dz and lsoa.csv' %>%
   read.csv
-pm25 %>% head
+
+allTenure <- 'Saved generated data/ census HH tenure lookup.csv' %>% read.csv
 
 ##  1) 2004 scot data -----
 
@@ -51,7 +52,9 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'dz01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'dz01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
 
 
 ##  Some SIMD varianbles have issues; income deprivation ns are missing
@@ -71,8 +74,13 @@ neat.tab <-
          la = Local.Authority.Name,
          ttwa = ttwa11nm,
          pop = Total.Population..2001.Census.,
+         
          inc.n = Number.of.Current.Income.Deprived,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = NA_integer_, #we are specifcying type just for neatness later
@@ -112,7 +120,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'dz01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'dz01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ##  neat table 
@@ -125,6 +136,11 @@ neat.tab <-
          pop = Total.Population..SAPE.2004.,
          inc.n = Number.of.Current.Income.Deprived.People.2006,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+        
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = SIMD.Crime.2006.rank,
@@ -160,7 +176,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'dz01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'dz01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ##  neat table 
@@ -173,6 +192,10 @@ neat.tab <-
          pop = Total.Population..SAPE.2007.,
          inc.n = Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10.,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = SIMD.Crime.2009.rank,
@@ -208,7 +231,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'dz01'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'dz01'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2001'),
+            by = 'zone')
+
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ##  neat table 
@@ -221,6 +247,11 @@ neat.tab <-
          pop = Total.Population..SAPE.2010.,
          inc.n = Number.of.Income.Deprived.People.2012,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = SIMD.Crime.2012.rank,
@@ -263,7 +294,10 @@ imd <- pop %>%
   left_join(dist %>% filter(zone_type == 'dz11'), 
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'dz11'), 
-            by = 'zone') 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2011'),
+            by = 'zone')
+
 
 nrow(pop) == nrow(imd) # so still 1 to 1 join
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
@@ -277,6 +311,11 @@ neat.tab <-
          pop = Total_population,
          inc.n = Income_count,
          noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
+         
          dist_main = main_dist,
          dist_nearest = nearest_dist,
          crime = Crime_domain_2016_rank,
