@@ -10,24 +10,26 @@ source('UI paper 1 source.R')
 ##  and distance to centre
 ##  All these variable already have 'zone' as a var
 
-area.tab <- 
+area.tab <-
   'Saved generated data/Area size for lsoa and datazones lkp.csv' %>%
   read.csv
 
-accesslsoa.01 <- 
+accesslsoa.01 <-
   'Saved generated data/emp access lsoa01 lkp.csv' %>% read.csv %>%
   mutate(type = '')
-accesslsoa.11 <- 
+accesslsoa.11 <-
   'Saved generated data/emp access lsoa11 lkp.csv' %>% read.csv
 
 dist <-
   'Saved generated data/Distance from nearest centre for zones and TTWA lkp.csv' %>%
   read.csv
 
-pm25 <- 'Saved generated data/Annual avg air pollution dz and lsoa.csv' %>%
+pm25 <-
+  'Saved generated data/Annual avg air pollution dz and lsoa.csv' %>%
   read.csv
 
-allTenure <- 'Saved generated data/ census HH tenure lookup.csv' %>% read.csv
+allTenure <-
+  'Saved generated data/ census HH tenure lookup.csv' %>% read.csv
 
 
 ##  1) 2004 English data -----
@@ -311,5 +313,79 @@ summary(neat.tab %>% filter(pop  %>% is.na)) #checks # no more missing
 neat.tab %>% filter(pop  %>% is.na) #some imd population data is just missing
 neat.tab %>% write.csv('Saved generated data/Formatted English data 2015.csv')
 rm(neat.tab)
+
+##  5) English 2019 data ----
+##  Load in LSOA distance file and then subset to LSOA11
+imd_pop <- 
+  google.drive.spatial %>%
+  file.path(
+    'English IMDs/2019/File_6_-_IoD2019_Population_Denominators.csv'
+  ) %>% 
+  read.csv
+
+imd_scores <- 
+  google.drive.spatial %>%
+  file.path(
+    'English IMDs/2019/File_5_-_IoD2019_Scores.csv'
+  ) %>% 
+  read.csv
+
+
+##  Merge, remove and rename zones
+imd <- 
+  imd_pop %>% left_join(imd_scores)
+rm(imd_pop, imd_scores)
+
+imd <-
+  imd %>%
+  rename(zone = LSOA.code..2011.)
+
+##  Let's merge it all; imd with spatial lookup
+imd <- 
+  imd %>%
+  left_join(accesslsoa.11, 
+            by = 'zone') %>%
+  left_join(area.tab %>% filter(type == 'lsoa11'),
+            by = 'zone') %>%
+  left_join(dist %>% filter(zone_type == 'lsoa11'), 
+            by = 'zone') %>%
+  left_join(pm25 %>% filter(type == 'lsoa11'), 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2011'),
+            by = 'zone')
+
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+##  neat table 
+
+neat.tab <- 
+  imd %>% 
+  mutate(year = 2019,
+         country = 'England',
+         la = Local.Authority.District.name..2019.,
+         ttwa = ttwa11nm,
+         pop = Total.population..mid.2015..excluding.prisoners.,
+         inc.n = Income.Score..rate. * pop,
+         noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
+         
+         dist_main = main_dist,
+         dist_nearest = nearest_dist,
+         crime = -1 * Crime.Score,
+         live.in = -1 * Living.Environment.Score,
+         geo = -1 * Geographical.Barriers.Sub.domain.Score,
+         area = area,
+         pm25 = year2018 %>% {-1 * .} %>% rank,
+         work = accessB) %>%
+  dplyr::select(zone, year:work, area)
+
+neat.tab %>% head
+neat.tab %>% write.csv('Saved generated data/Formatted English data 2019.csv')
+rm(neat.tab)
+
 
 ##  End ----

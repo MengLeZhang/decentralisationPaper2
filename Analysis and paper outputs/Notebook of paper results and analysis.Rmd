@@ -314,7 +314,7 @@ reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
 
 
 reg.match <-
-  reg.match %>% filter(year %in% c('2015', '2016'))
+  reg.match %>% filter(year %in% c('2019', '2016'))
 
 ##  We need to use weights in our regression routine for matched data so we can only access the latest years
 
@@ -395,11 +395,11 @@ summary.tab <-
   compare.tab %>% 
   group_by(ttwa) %>%
   summarise(
-    change_rci.inc = dist_nearest.inc[year >= 2015] - dist_nearest.inc[year == 2004],
-    change_rci.HH = dist_nearest.HH[year >= 2015] - dist_nearest.HH[year == 2004],
+    change_rci.inc = dist_nearest.inc[year >= 2016] - dist_nearest.inc[year == 2004],
+    change_rci.HH = dist_nearest.HH[year >= 2016] - dist_nearest.HH[year == 2004],
 
-    change_di.inc = di.inc[year >= 2015] - di.inc[year == 2004],
-    change_di.HH = di.HH[year >= 2015] - di.HH[year == 2004]
+    change_di.inc = di.inc[year >= 2016] - di.inc[year == 2004],
+    change_di.HH = di.HH[year >= 2016] - di.HH[year == 2004]
     
   )
 
