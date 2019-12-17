@@ -12,14 +12,16 @@ scotTenure01 <-
   mutate(
     zone = X,
     census = 2001,
-    allHH = All.households %>% as.numeric %>% replace_na(0),
-    socialHH = Social.rented %>% as.numeric %>% replace_na(0),
+    allHH = All.households,
+    socialHH = Social.rented,
     nonsocialHH = allHH - socialHH,
     privateHH = 
-      Private.rented..Furnished. %>% as.numeric %>% replace_na(0) +
-      Private.rented..Unfurnished. %>% as.numeric %>% replace_na(0)
+      sum(Private.rented..Furnished., Private.rented..Unfurnished., na.rm = T)
   ) %>%
   dplyr::select(zone:privateHH)
+
+scotTenure01[c(-1, -2)][scotTenure01[c(-1, -2)] %>% is.na] <- 0 # Create NAs
+
 
 ##  2011
 scotTenure11 <- 
@@ -32,12 +34,15 @@ scotTenure11 <-
   mutate(
     zone = X,
     census = 2011,
-    allHH = All.households %>% as.numeric %>% replace_na(0),
-    socialHH = Social.rented %>% as.numeric %>% replace_na(0),
+    allHH = All.households,
+    socialHH = Social.rented,
     nonsocialHH = allHH - socialHH,
-    privateHH = Private.rented %>% as.numeric %>% replace_na(0)
+    privateHH = Private.rented
   ) %>%
   dplyr::select(zone:privateHH)
+
+scotTenure11[c(-1, -2)][scotTenure11[c(-1, -2)] %>% is.na] <- 0 # Create NAs
+
 
 ##  England
 ## 2001
@@ -58,6 +63,8 @@ engTenure01 <-
   ) %>%
   dplyr::select(zone:privateHH)
 
+engTenure01[c(-1, -2)][engTenure01[c(-1, -2)] %>% is.na] <- 0 # Create NAs
+
 ##  2011
 engTenure11 <- 
   google.drive.spatial %>%
@@ -75,6 +82,9 @@ engTenure11 <-
     privateHH = Private.rented..Total
   ) %>%
   dplyr::select(zone:privateHH)
+
+engTenure11[c(-1, -2)][engTenure11[c(-1, -2)] %>% is.na] <- 0 # Create NAs
+
 
 ##  Step 2: Rbind and save ----
 allTenure <- 
