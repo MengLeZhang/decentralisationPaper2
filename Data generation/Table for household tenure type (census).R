@@ -18,9 +18,15 @@ scotTenure01 <-
     privateHH = 
       sum(Private.rented..Furnished., Private.rented..Unfurnished., na.rm = T)
   ) %>%
+  replace_na(
+    list(
+    allHH = 0,
+    socialHH = 0,
+    nonsocialHH = 0,
+    privateHH = 0
+    )  
+  ) %>%
   dplyr::select(zone:privateHH)
-
-scotTenure01[c(-1, -2)][scotTenure01[c(-1, -2)] %>% is.na] <- 0 # Create NAs
 
 
 ##  2011
@@ -39,10 +45,15 @@ scotTenure11 <-
     nonsocialHH = allHH - socialHH,
     privateHH = Private.rented
   ) %>%
+  replace_na(
+    list(
+      allHH = 0,
+      socialHH = 0,
+      nonsocialHH = 0,
+      privateHH = 0
+    )  
+  ) %>%
   dplyr::select(zone:privateHH)
-
-scotTenure11[c(-1, -2)][scotTenure11[c(-1, -2)] %>% is.na] <- 0 # Create NAs
-
 
 ##  England
 ## 2001
@@ -61,9 +72,16 @@ engTenure01 <-
     nonsocialHH = allHH - socialHH,
     privateHH = Private.rented..Total
   ) %>%
+  replace_na(
+    list(
+      allHH = 0,
+      socialHH = 0,
+      nonsocialHH = 0,
+      privateHH = 0
+    )  
+  ) %>%
   dplyr::select(zone:privateHH)
 
-engTenure01[c(-1, -2)][engTenure01[c(-1, -2)] %>% is.na] <- 0 # Create NAs
 
 ##  2011
 engTenure11 <- 
@@ -81,9 +99,16 @@ engTenure11 <-
     nonsocialHH = allHH - socialHH,
     privateHH = Private.rented..Total
   ) %>%
+  replace_na(
+    list(
+      allHH = 0,
+      socialHH = 0,
+      nonsocialHH = 0,
+      privateHH = 0
+    )  
+  ) %>%
   dplyr::select(zone:privateHH)
 
-engTenure11[c(-1, -2)][engTenure11[c(-1, -2)] %>% is.na] <- 0 # Create NAs
 
 
 ##  Step 2: Rbind and save ----
@@ -91,6 +116,8 @@ allTenure <-
   rbind(engTenure01, engTenure11,
         scotTenure01, scotTenure11
   )
+
+# allTenure %>% summary # check for no NA in HH
 
 allTenure %>% write.csv('Saved generated data/ census HH tenure lookup.csv')
 

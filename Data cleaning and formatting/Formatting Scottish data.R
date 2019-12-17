@@ -37,9 +37,17 @@ allTenure <- 'Saved generated data/ census HH tenure lookup.csv' %>% read.csv
 ##  1) 2004 scot data -----
 
 ##  Load in primarily imd data
+##  Note: Some SIMD varianbles have issues; income deprivation ns are missing
+# all missing cases have the highest SIMD income rank indciatng
+##  or very high therefore  missingness is due to 0 values
+##  Therefore we repalce missing with 0
+
 pop <- 
   google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04.csv') %>% read.csv
 pop <- pop %>%
+  replace_na(
+    list(Number.of.Current.Income.Deprived = 0)
+  ) %>%
   mutate(zone = Data.Zone)
 
 ## all in pop
@@ -56,14 +64,6 @@ imd <- pop %>%
   left_join(allTenure %>% filter(census == '2001'),
             by = 'zone')
 
-
-##  Some SIMD varianbles have issues; income deprivation ns are missing
-imd %>% filter(is.na(Number.of.Current.Income.Deprived)) %>% head
-# all missing cases have the highest SIMD income rank indciatng
-##  or very high therefore  missingness is due to 0 values
-##  Therefore we repalce missing with 0
-imd <- imd %>%
-  mutate(Number.of.Current.Income.Deprived = Number.of.Current.Income.Deprived %>% replace_na(0))
 
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
 ##  neat table 
@@ -106,9 +106,11 @@ pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06.csv') %>% re
 
 
 ##  Add a zone id and replace NA of number ofi ncome deprived to 0
-pop <- pop %>% 
-  mutate(Number.of.Current.Income.Deprived.People.2006 = 
-           Number.of.Current.Income.Deprived.People.2006 %>% replace_na(0)) %>%
+pop <- 
+  pop %>% 
+  replace_na(
+    list(Number.of.Current.Income.Deprived.People.2006 = 0)
+  ) %>%
   mutate(zone = Data.Zone)
 
 ##  mergers of geodata
@@ -163,8 +165,9 @@ rm(neat.tab)
 pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2009/simd 09.csv') %>% read.csv
 
 pop <- pop %>% 
-  mutate(Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10. = 
-           Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10. %>% replace_na(0)) %>%
+  replace_na(
+    list(Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10. = 0)
+  ) %>%
   mutate(zone = Data.Zone)
 
 ##  mergers of geodata
@@ -218,8 +221,9 @@ rm(neat.tab)
 pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2012/simd 12.csv') %>% read.csv
 
 pop <- pop %>% 
-  mutate(Number.of.Income.Deprived.People.2012 = 
-           Number.of.Income.Deprived.People.2012 %>% replace_na(0)) %>%
+  replace_na(
+    list(Number.of.Income.Deprived.People.2012 = 0)
+    ) %>%
   mutate(zone = Data.Zone)
 
 ##  mergers of geodata
@@ -274,8 +278,9 @@ rm(neat.tab)
 pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2016/simd 16 all.csv') %>% read.csv
 
 pop <- pop %>% 
-  mutate(Income_count = 
-           Income_count %>% replace_na(0)) %>%
+  replace_na(
+    list(Income_count = 0)
+    )%>%
   mutate(zone = Data_Zone)
 
 ranks <- google.drive.spatial %>%  
