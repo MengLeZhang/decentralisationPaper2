@@ -23,9 +23,15 @@
 
 ##  Load in the data files from the appropriate place; change location to suit machine
 library(tidyverse)
-google.drive <- 'C:/Users/Meng Le Zheng/Synced Google Drive/Google Drive'
+
+##  Laptop version (default)
+google.drive <- 'C:/Users/Meng Le Zheng/Synced Google Drive/Google Drive' # Laptop
+#google.drive <- 'C:/Users/sa_Mi1mz/Google Drive/Google Drive' #VM
+
+
 google.drive.spatial <- google.drive %>% 
   paste('/Spatial lookup files/UK', sep = '') ## The path to the spatial lkp data on laptop
+
 
 ##  Default CRS used for easting and northing
 ukgrid = "+init=epsg:27700" ## always remember the CRS
