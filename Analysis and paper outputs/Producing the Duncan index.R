@@ -7,7 +7,7 @@ eng04 <- read.csv('Saved generated data/Formatted English data 2004.csv')
 eng07 <- read.csv('Saved generated data/Formatted English data 2007.csv')
 eng10 <- read.csv('Saved generated data/Formatted English data 2010.csv')
 eng15 <- read.csv('Saved generated data/Formatted English data 2015.csv')
-#eng19 <- read.csv('Saved generated data/Formatted English data 2019.csv')
+eng19 <- read.csv('Saved generated data/Formatted English data 2019.csv')
 
 sco04 <- read.csv('Saved generated data/Formatted Scotland data 2004.csv')
 sco06 <- read.csv('Saved generated data/Formatted Scotland data 2006.csv')
@@ -16,7 +16,7 @@ sco12 <- read.csv('Saved generated data/Formatted Scotland data 2012.csv')
 sco16 <- read.csv('Saved generated data/Formatted Scotland data 2016.csv')
 
 combined.tab <- rbind(eng04, eng07, eng10, eng15, 
-                      #eng19,
+                      eng19,
                       sco04, sco06, sco09, sco12, sco16)
 
 
@@ -31,8 +31,8 @@ combined.tab <-
                                       crime[year == '2006'], 
                          NA)
                          ),# Since scotland missing crime at 2004
-    geo_fixed = ifelse(year %in% c(2015, 2016), NA, geo[year == '2004']),
-    pm25_fixed = ifelse(year %in% c(2015, 2016), NA, pm25[year == '2004'])
+    geo_fixed = ifelse(year %in% c(2015, 2016, 2019), NA, geo[year == '2004']),
+    pm25_fixed = ifelse(year %in% c(2015, 2016, 2019), NA, pm25[year == '2004'])
   ) %>%
   ungroup
 

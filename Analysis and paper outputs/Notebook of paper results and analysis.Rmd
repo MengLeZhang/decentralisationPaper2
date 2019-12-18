@@ -32,6 +32,9 @@ g_legend<-function(a.gplot){
   legend <- tmp$grobs[[leg]]
   return(legend)}
 
+## Style of writing size
+title_size <- element_text(size = 10) 
+
 ```
 
 
@@ -41,9 +44,13 @@ g_legend<-function(a.gplot){
 We first filter the data to non-isle and non-crossborder TTWAs. Then we only keep
 TTWA with pops over 70k in 2004.
 
+NOTE: We also deliberately filter to cover IMD years up to 2016 to omit 
+English 2019 IMD until such time that a near in time Scottish IMD is available.
+
 ```{r}
 ttwa.tab <- '../Results/Duncan index by TTWA.csv' %>% read.csv(stringsAsFactors = F)
 crossborder.ttwa <- c('Hawick', 'Kelso & Jedburgh', 'Berwick', 'Carlisle') #cross national ttwas to be omitted
+
 isles.ttwa <- c(
   'Eilean Siar',
   'Mull & Islay',
@@ -60,6 +67,7 @@ isles.ttwa <- c(
 
 ttwa.tab <- 
   ttwa.tab %>% 
+  filter(year <= 2016) %>% # filter to 2016 or earlier
   filter(!(ttwa %in% crossborder.ttwa)) %>% #not a cross border ttwa
   filter(!(ttwa %in% isles.ttwa)) %>% #nor isle
   ##  We need to take these out first since crossborder ttwa are duplicated
@@ -206,14 +214,18 @@ rci.gg <-
          mapping =aes(x = year, y = y, colour = country)) + 
   geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
   geom_line(size = 1) +
-  ylab('Centralisation (RCI)') 
+  theme(plot.title = title_size) +
+  ggtitle('(i) Centralisation (RCI)') +
+  ylab(NULL) 
 
 di.gg <- 
   ggplot(data = summarise_mydata('di'), 
          mapping =aes(x = year, y = y, colour = country)) + 
   geom_errorbar(aes(ymax = ymax, ymin = ymin), alpha = 0.5) +
   geom_line(size = 1) +
-  ylab('Uneveness (DI)')
+  theme(plot.title = title_size) +
+  ggtitle('(ii) Uneveness (DI)') +
+  ylab(NULL) 
 
 ## One big plot
 mylegend<-g_legend(rci.gg + theme(legend.direction = 'horizontal'))
@@ -222,12 +234,12 @@ seg.grid <- grid.arrange(rci.gg + xlab('') + theme(legend.position="none"),
                          di.gg + xlab('')+ theme(legend.position="none"), 
                          ncol = 2,
                          #                    top = 'Changes in Segregation',
-                         left = 'Index',
+#                         left = 'Index',
                          bottom = 'Year'
 )
 
 grid.arrange(mylegend, seg.grid, nrow=2,heights=c(1, 12),
-             top = 'Change in segregation (Error bars for annual comparison)')
+             top = 'Change in segregation indicies (Error bars for annual comparison)')
 
 
 ```
@@ -287,12 +299,12 @@ gfx <- grid.arrange(house.gg + xlab('') + theme(legend.position="none"),
                     air.gg + xlab('') + theme(legend.position="none"), 
                     work.gg + xlab('') + theme(legend.position="none"), 
                     #             top = 'Changes in inequality and centralisation',
-                    left = 'Index',
+#                    left = 'Index',
                     bottom = 'Year'
 )
 
 grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
-             top = 'Change in inequality (Error bars for annual comparison)')
+             top = 'Change in inequality indicies (Error bars for annual comparison)')
 
 
 ```
@@ -314,7 +326,7 @@ reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
 
 
 reg.match <-
-  reg.match %>% filter(year %in% c('2019', '2016'))
+  reg.match %>% filter(year %in% c('2015', '2016')) ## This line determines which years are compared
 
 ##  We need to use weights in our regression routine for matched data so we can only access the latest years
 
@@ -350,7 +362,8 @@ stargazer(dist.reg,
           omit = c('scale', 'dist_nearest04', 'di04'),
           no.space = T,
           out = '../Results/ Segregation index model results unmatched.html',
-          keep.stat = c('n')
+#          keep.stat = c('n'),
+          notes = 'Some parameter estimates are omitted'
 )
 
 stargazer(dist.reg2,
@@ -364,7 +377,8 @@ stargazer(dist.reg2,
           omit = c('scale', 'dist_nearest04', 'di04'),
           no.space = T,
           out = '../Results/ Segregation index model results matched.html',
-          keep.stat = c('n')
+#          keep.stat = c('n'),
+          notes = 'Some parameter estimates are omitted'
 )
 
 
@@ -395,11 +409,11 @@ summary.tab <-
   compare.tab %>% 
   group_by(ttwa) %>%
   summarise(
-    change_rci.inc = dist_nearest.inc[year >= 2016] - dist_nearest.inc[year == 2004],
-    change_rci.HH = dist_nearest.HH[year >= 2016] - dist_nearest.HH[year == 2004],
+    change_rci.inc = dist_nearest.inc[year %in% 2015:2016] - dist_nearest.inc[year == 2004],
+    change_rci.HH = dist_nearest.HH[year %in% 2015:2016] - dist_nearest.HH[year == 2004],
 
-    change_di.inc = di.inc[year >= 2016] - di.inc[year == 2004],
-    change_di.HH = di.HH[year >= 2016] - di.HH[year == 2004]
+    change_di.inc = di.inc[year %in% 2015:2016] - di.inc[year == 2004],
+    change_di.HH = di.HH[year %in% 2015:2016] - di.HH[year == 2004]
     
   )
 
@@ -446,7 +460,7 @@ stargazer(reg.list, type = 'text',
 #          column.labels = rep(c('All', 'Matched'), 5),
           omit = c('scale', 'dist_nearest04'),
           no.space = T,
-          notes = 'Note: Scottish crime results only available from 2006 onwards',
+          notes = 'Note: Scottish crime results only available from 2006 onwards; some parameter estimates are omitted',
           out = '../Results/ Inequality index model results.html',
           keep.stat = c('n')
           )
@@ -482,7 +496,7 @@ stargazer(fixed_reg.list, type = 'text',
          add.lines =  list( c('Fixed values at 2004', rep(c('F', 'T'), 3)) ),
           omit = c('scale', 'dist_nearest04'),
           no.space = T,
-          notes = 'Note: Scottish crime results uses 2006 SIMD values',
+          notes = 'Note: Scottish crime results uses 2006 SIMD values; some parameter estimates are omitted',
           out = '../Results/ Inequality index model results (fixed).html',
           keep.stat = c('n')
           )
