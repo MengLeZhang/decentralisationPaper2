@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = T, message = F) #show code but no messages
 ```
 
 ```{r}
-source('../UI paper 1 source.R')
+library(tidyverse)
 library(MatchIt, quietly = T)
 library(Matching, quietly = T)
 library(stargazer, quietly = T)
@@ -311,29 +311,6 @@ grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
 
 
 
-##  Regression models
-
-The data we are using for the models
-
-```{r}
-reg.unmatch <- ttwa.tab # just the whole data
-
-##  For the matched data we basically need the TTWA and their weights
-temp.match <- MatchIt::match.data(match.res)
-head(temp.match)
-temp.match <- temp.match %>% dplyr::select(ttwa, weights)
-reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
-
-
-reg.match <-
-  reg.match %>% filter(year %in% c('2015', '2016')) ## This line determines which years are compared
-
-##  We need to use weights in our regression routine for matched data so we can only access the latest years
-
-```
-
-
-
 ```{r}
 ##  The multilevel models 
 form1 <- ~ I(year - 2004) + I(year - 2004)*country + (1|ttwa)
@@ -388,44 +365,25 @@ stargazer(dist.reg2,
 
 ```{r}
 ttwa.tab_HH <- '../Results/Duncan index by TTWA Households.csv' %>% read.csv(stringsAsFactors = F)
+
+
 compare.tab <-
-  ttwa.tab %>%
-  left_join(ttwa.tab_HH,
-            by = c('ttwa', 'country', 'year'),
-            suffix = c('.inc', '.HH')
-  )
+    ttwa.tab %>%
+    left_join(ttwa.tab_HH,
+              by = c('ttwa', 'country', 'year'),
+              suffix = c('.inc', '.HH')
+    ) %>%
+    filter(
+      country == 'England'
+    ) %>%
+    filter(
+      year %in% c(2004, 2015) 
+    )
 
+## Simple model for change in RCI
 
-compare.tab %>% 
-  group_by(country, year) %>%
-  summarise(rci_HH =  dist_nearest.HH %>% mean,
-            di.HH = di.HH %>% mean)
-
-
-##  Correlation between social housing and decentralisaiton at 2004
-## Data prep
-
-summary.tab <-
-  compare.tab %>% 
-  group_by(ttwa) %>%
-  summarise(
-    change_rci.inc = dist_nearest.inc[year %in% 2015:2016] - dist_nearest.inc[year == 2004],
-    change_rci.HH = dist_nearest.HH[year %in% 2015:2016] - dist_nearest.HH[year == 2004],
-
-    change_di.inc = di.inc[year %in% 2015:2016] - di.inc[year == 2004],
-    change_di.HH = di.HH[year %in% 2015:2016] - di.HH[year == 2004]
-    
-  )
-
-##  Over time correlation
-summary.tab[-1] %>%  cor(use= "pairwise.complete.obs", method = 'spearman') #mega low 
-
-##  Correlation at 2004
-compare.tab %>% 
-  filter(year == '2004') %>% 
-  dplyr::select(starts_with('dist_nearest.'), starts_with('di.')) %>%
-  cor(use= "pairwise.complete.obs", method = 'spearman')
-
+lm(dist_nearest.HH ~ as.factor(year), compare.tab) %>% summary
+lm(dist_main.HH ~ as.factor(year), compare.tab) %>% summary
 
 ```
 
