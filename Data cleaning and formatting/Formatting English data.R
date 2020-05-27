@@ -77,7 +77,7 @@ imd <- pop %>%
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'lsoa01'), 
             by = 'zone') %>%
-  left_join(allTenure %>% filter(census == '2001'),
+  left_join(allTenure %>% filter(census == '2001'), #First instance of using 2001 census data
             by = 'zone')
 
 
@@ -272,7 +272,7 @@ imd <- pop %>%
             by = 'zone') %>%
   left_join(pm25 %>% filter(type == 'lsoa11'), 
             by = 'zone') %>%
-  left_join(allTenure %>% filter(census == '2011'),
+  left_join(allTenure %>% filter(census == '2011'), ## Note here we use 2011 census data
             by = 'zone')
 
 
