@@ -78,6 +78,8 @@ neat.tab <-
          inc.n = Number.of.Current.Income.Deprived,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
 
@@ -139,6 +141,8 @@ neat.tab <-
          inc.n = Number.of.Current.Income.Deprived.People.2006,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
         
@@ -196,6 +200,8 @@ neat.tab <-
          inc.n = Number.of.Income.Deprived.People.2009.V2..Revised.19.07.10.,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
@@ -252,6 +258,8 @@ neat.tab <-
          inc.n = Number.of.Income.Deprived.People.2012,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
@@ -317,6 +325,8 @@ neat.tab <-
          inc.n = Income_count,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          

@@ -95,6 +95,9 @@ neat.tab <-
          inc.n = INCOME.SCORE * Total.population,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
+         
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
@@ -171,6 +174,8 @@ neat.tab <-
          inc.n = INCOME.SCORE * pop,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
@@ -229,6 +234,8 @@ neat.tab <-
          inc.n = INCOME.SCORE * pop,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
@@ -292,6 +299,8 @@ neat.tab <-
          inc.n = Income.Score..rate. * pop,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
@@ -369,6 +378,8 @@ neat.tab <-
          inc.n = Income.Score..rate. * pop,
          noninc.n = pop - inc.n,
          
+         priv.HH = privateHH,
+         nonPriv.HH = allHH - privateHH,
          social.HH = socialHH,
          nonsocial.HH = nonsocialHH,
          
