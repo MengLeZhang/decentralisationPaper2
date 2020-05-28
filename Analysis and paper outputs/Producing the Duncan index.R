@@ -19,7 +19,6 @@ combined.tab <- rbind(eng04, eng07, eng10, eng15,
                       eng19,
                       sco04, sco06, sco09, sco12, sco16)
 
-
 ##  Creating the stats fixed at 2004 quantities; we do not fill in anything if imd >= 2015 or 2016
 combined.tab <-
   combined.tab %>%
@@ -72,7 +71,7 @@ cor(ttwa.tab[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
 ## Large correlation between ranks for crime etc
 
 ##  2) Results using segregation by housing tenure ----
-ttwa.tab_HH <- 
+ttwa.tab_privHH <- 
   combined.tab %>%
   group_by(year, ttwa, country) %>% ## we want to calculate stats by year, ttwa and country
   summarise(total.pop = sum(pop), #name of summary statistic and how its calculated; i.e total.pop is sum of pop
@@ -100,4 +99,29 @@ ttwa.tab_HH %>% write.csv('Results/Duncan index by TTWA Households.csv')
 cor(ttwa.tab_HH[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
 
 
+##  3) Results using segregation by private rent?
+ttwa.tab_privHH <- 
+  combined.tab %>%
+  group_by(year, ttwa, country) %>% ## we want to calculate stats by year, ttwa and country
+  summarise(total.pop = sum(pop), #name of summary statistic and how its calculated; i.e total.pop is sum of pop
+            total.area = sum(area),#,
+            prop.inc = sum(priv.HH) / sum(priv.HH, nonPriv.HH),
+            dist_main = dindex(x = nonPriv.HH, y = priv.HH, sort.var = dist_main), #name of summary statistic and how its calculated
+            dist_nearest = dindex(x = nonPriv.HH, y = priv.HH, sort.var = dist_nearest),
+            di = sum( abs((priv.HH / sum(priv.HH)) - (nonPriv.HH / sum(nonPriv.HH))) ) / 2,
+            concen = sum( abs((priv.HH / sum(priv.HH)) - (area / sum(area))) ) / 2,
+            live.in = dindex(x = nonPriv.HH, y = priv.HH, sort.var = live.in),
+            crime = dindex(x = nonPriv.HH, y = priv.HH, sort.var = crime),
+            geo = dindex(x = nonPriv.HH, y = priv.HH, sort.var = geo),
+            work = dindex(x = nonPriv.HH, y = priv.HH, sort.var = work),
+            pm25 = dindex(x = nonPriv.HH, y = priv.HH, sort.var = pm25),
+            suburb = dindex(x = nonPriv.HH, y = priv.HH, sort.var = -1 * pop / area),
+            ##  Fixed Dindex            
+            crime_fixed = dindex(x = nonPriv.HH, y = priv.HH, sort.var = crime_fixed),
+            geo_fixed = dindex(x = nonPriv.HH, y = priv.HH, sort.var = geo_fixed),
+            pm25_fixed = dindex(x = nonPriv.HH, y = priv.HH, sort.var = pm25_fixed)
+            
+  )
+
+ttwa.tab_privHH %>% write.csv('Results/Duncan index by TTWA private Households.csv')
 ##  End
