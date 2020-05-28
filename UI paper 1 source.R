@@ -25,8 +25,10 @@
 library(tidyverse)
 
 ##  Laptop version (default)
-google.drive <- 'C:/Users/Meng Le Zheng/Synced Google Drive/Google Drive' # Laptop
-#google.drive <- 'C:/Users/sa_Mi1mz/Google Drive/Google Drive' #VM
+google.drive <- 
+  'C:/Users/mi1mz/Google Drive/Google Drive' #yoyo desktop
+  #'C:/Users/Meng Le Zheng/Synced Google Drive/Google Drive' # Laptop
+  #'C:/Users/sa_Mi1mz/Google Drive/Google Drive' #VM
 
 
 google.drive.spatial <- google.drive %>% 
