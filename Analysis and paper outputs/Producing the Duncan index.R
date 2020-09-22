@@ -13,9 +13,17 @@ sco09 <- read.csv('Saved generated data/Formatted Scotland data 2009.csv')
 sco12 <- read.csv('Saved generated data/Formatted Scotland data 2012.csv')
 sco16 <- read.csv('Saved generated data/Formatted Scotland data 2016.csv')
 
-combined.tab <- rbind(eng04, eng07, eng10, eng15,
-                      sco04, sco06, sco09, sco12, sco16)
 
+eng.tab <- 
+  rbind(eng04, eng07, eng10, eng15) %>%
+  mutate(country ='England')
+
+sco.tab <-
+  rbind(sco04, sco06, sco09, sco12, sco16) %>%
+  mutate(country = 'Scotland')
+
+combined.tab <- 
+  rbind(eng.tab, sco.tab)
 
 ##  Creating the stats fixed at 2004 quantities; we do not fill in anything if imd == 2015 or 2016
 combined.tab <-
@@ -32,6 +40,39 @@ combined.tab <-
     pm25_fixed = ifelse(year %in% c(2015, 2016), NA, pm25[year == '2004'])
   ) %>%
   ungroup
+
+
+##  1b. Get the cumulative distribution
+
+combined.tab <- 
+  combined.tab %>%
+  group_by(ttwa, year) %>%
+  arrange(dist_nearest) %>%
+  mutate(
+    cumInc = cumsum(inc.n) / sum(inc.n),
+    cumNoninc = cumsum(noninc.n) / sum(noninc.n)
+  ) 
+
+test %>%
+  group_by(ttwa, year) %>%
+  mutate(
+    minus20 = abs(cumInc - 0.20),
+    minus40 = abs(cumInc - 0.40),
+    minus60 = abs(cumInc - 0.60),
+    minus80 = abs(cumInc - 0.80)
+  ) %>%
+#  select(ttwa, year, cumInc, cumNoninc, minus20) %>% 
+  summarise(
+    i20 = which.min(minus20),
+    i40 = which.min(minus40),
+    i60 = which.min(minus60),
+    i80 = which.min(minus80),
+    cumNoninc_at_20 = cumNoninc[i20],
+    cumNoninc_at_40 = cumNoninc[i40],
+    cumNoninc_at_60 = cumNoninc[i60],
+    cumNoninc_at_80 = cumNoninc[i80]
+  )
+  
 
 
 ##  Save a copy of the combined table: this is used for other linkage operations
