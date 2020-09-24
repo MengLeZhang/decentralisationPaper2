@@ -117,7 +117,9 @@ set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
           ratio = 2,
-          data = unmatch.tab %>% dplyr::select(ttwa:total.area, di04, cumNoninc_at_20:cumNoninc_at_80),
+          data = unmatch.tab %>% 
+            filter(ttwa != 'London') %>%
+            dplyr::select(ttwa:total.area, di04, cumNoninc_at_20:cumNoninc_at_80),
           method = 'genetic')
 
 
@@ -131,7 +133,6 @@ Now we can try to summarise the matching results.
 
 ```{r}
 match.stats %>% print
-
 ```
 
 We have a total of `r match.stats$nn[1, 1]` English and `r match.stats$nn[1, 2]` Scottish ttwa. In our final matched sample, we have `r match.stats$nn[2, 1]` English TTWAs matched to`r match.stats$nn[2, 2]` Scottish ttwas. 
@@ -328,6 +329,7 @@ reg.match <-
   reg.match %>% filter(year %in% c('2015', '2016'))
 
 ##  We need to use weights in our regression routine for matched data so we can only access the latest years
+reg.match$ttwa %>% print
 
 ```
 
