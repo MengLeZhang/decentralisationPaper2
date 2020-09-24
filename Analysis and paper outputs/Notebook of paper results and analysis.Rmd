@@ -57,7 +57,6 @@ isles.ttwa <- c(
   'Isle of Wight')
 #islands
 
-
 ttwa.tab <- 
   ttwa.tab %>% 
   filter(!(ttwa %in% crossborder.ttwa)) %>% #not a cross border ttwa
@@ -68,6 +67,12 @@ ttwa.tab <-
     pop04 = total.pop[year == '2004']) %>% #variable for pop in 2004
   mutate(dist_nearest04 = dist_nearest[year == '2004']) %>%
   mutate(di04 = di[year == '2004']) %>%
+  mutate(
+    cumNoninc_at_20_04 = cumNoninc_at_20[year == '2004'],
+    cumNoninc_at_40_04 = cumNoninc_at_40[year == '2004'],
+    cumNoninc_at_60_04 = cumNoninc_at_60[year == '2004'],
+    cumNoninc_at_80_04 = cumNoninc_at_80[year == '2004']
+  ) %>%
   ungroup %>%
   filter(pop04 > 70000) %>% ## over 70k in 2004
   filter(!is.na(ttwa)) ##finally no missign ttwa as this code is just due to our previous routine
@@ -100,13 +105,19 @@ in the matching by default (it generate own: i think from Sekhon's examples).
 
 ```{r, results= 'hide'}
 ## We need to hide all the print statement caused by genmatch
-match.form <- I(country == 'Scotland') ~ total.pop + total.area + dist_nearest04 + di04
+match.form <- 
+  I(country == 'Scotland') ~ 
+  cumNoninc_at_20 +
+  cumNoninc_at_40 +
+  cumNoninc_at_60 +
+  cumNoninc_at_80 +
+  di04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
           ratio = 2,
-          data = unmatch.tab %>% dplyr::select(ttwa:total.area, dist_nearest04, di04),
+          data = unmatch.tab %>% dplyr::select(ttwa:total.area, di04, cumNoninc_at_20:cumNoninc_at_80),
           method = 'genetic')
 
 
@@ -325,7 +336,7 @@ reg.match <-
 ```{r}
 ##  The multilevel models 
 form1 <- ~ I(year - 2004) + I(year - 2004)*country + (1|ttwa)
-form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 + di04 ## We omit the I(year - 2004) variable since last 
+form2 <- ~ country + cumNoninc_at_20 + cumNoninc_at_40 + cumNoninc_at_60 + cumNoninc_at_80 + di04 ## We omit the I(year - 2004) variable since last 
 ##  years 2015 or 2016 is associated with country
 ##Note:  form2 is form1 with more variables
 
