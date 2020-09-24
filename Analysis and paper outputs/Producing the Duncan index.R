@@ -42,9 +42,21 @@ combined.tab <-
   ungroup
 
 
-##  1b. Get the cumulative distribution
 
-combined.tab <- 
+##  Save a copy of the combined table: this is used for other linkage operations
+combined.tab %>% 
+  write.csv('Saved generated data/Master formated data of variables for England and Scotland (UI paper1).csv',
+            row.names = F)
+
+
+##  1b. Get the cumulative distribution (see below note) ----
+##  The variable denotes what Y% of nonincome deprived individuals are living 
+##  as close to city centre(s) as the closest 20%/40%/etc of income deprived individuals
+
+## steps
+##  a) Get the cumulative dstribution
+
+cumulative.tab <- 
   combined.tab %>%
   group_by(ttwa, year) %>%
   arrange(dist_nearest) %>%
@@ -53,7 +65,10 @@ combined.tab <-
     cumNoninc = cumsum(noninc.n) / sum(noninc.n)
   ) 
 
-test %>%
+##  b) the we pick the zone where the closes 20%/etc of poor live
+
+cumulative.tab <-
+  cumulative.tab %>%
   group_by(ttwa, year) %>%
   mutate(
     minus20 = abs(cumInc - 0.20),
@@ -61,7 +76,6 @@ test %>%
     minus60 = abs(cumInc - 0.60),
     minus80 = abs(cumInc - 0.80)
   ) %>%
-#  select(ttwa, year, cumInc, cumNoninc, minus20) %>% 
   summarise(
     i20 = which.min(minus20),
     i40 = which.min(minus40),
@@ -71,14 +85,12 @@ test %>%
     cumNoninc_at_40 = cumNoninc[i40],
     cumNoninc_at_60 = cumNoninc[i60],
     cumNoninc_at_80 = cumNoninc[i80]
-  )
-  
+  ) %>%
+  select(ttwa, year, cumNoninc_at_20:cumNoninc_at_80)
+
+## keep in workspace to join to data at the end
 
 
-##  Save a copy of the combined table: this is used for other linkage operations
-combined.tab %>% 
-  write.csv('Saved generated data/Master formated data of variables for England and Scotland (UI paper1).csv',
-            row.names = F)
 
 ##  Step 2) Caculate the duncan index for every combination of year and ttwa / la
 ##  TTWA
@@ -104,6 +116,10 @@ ttwa.tab <-
             pm25_fixed = dindex(x = noninc.n, y = inc.n, sort.var = pm25_fixed)
             
   )
+
+ttwa.tab <- 
+  ttwa.tab %>%
+  left_join(cumulative.tab)
 
 ttwa.tab %>% write.csv('Results/Duncan index by TTWA.csv')
 cor(ttwa.tab[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
@@ -133,9 +149,7 @@ ttwa.tab_HH <-
             
   )
 
-
 ttwa.tab_HH %>% write.csv('Results/Duncan index by TTWA Households.csv')
 cor(ttwa.tab_HH[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
-
 
 ##  End
