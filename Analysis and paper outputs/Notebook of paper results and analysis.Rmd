@@ -221,7 +221,7 @@ mylegend<-g_legend(rci.gg + theme(legend.direction = 'horizontal'))
 seg.grid <- grid.arrange(rci.gg + xlab('') + theme(legend.position="none"), 
                          di.gg + xlab('')+ theme(legend.position="none"), 
                          ncol = 2,
-                         #                    top = 'Changes in Segregation',
+                         #                    top = 'Changes in Centralisation and Uneveness',
                          left = 'Index',
                          bottom = 'Year'
 )
@@ -286,13 +286,12 @@ gfx <- grid.arrange(house.gg + xlab('') + theme(legend.position="none"),
                     geo.gg + xlab('')+ theme(legend.position="none"), 
                     air.gg + xlab('') + theme(legend.position="none"), 
                     work.gg + xlab('') + theme(legend.position="none"), 
-                    #             top = 'Changes in inequality and centralisation',
-                    left = 'Index',
+                    left = 'Spatial inequality index',
                     bottom = 'Year'
 )
 
 grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
-             top = 'Change in inequality (Error bars for annual comparison)')
+             top = 'Change in spatial inequality (Error bars for annual comparison)')
 
 
 ```
