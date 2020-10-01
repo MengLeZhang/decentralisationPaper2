@@ -13,7 +13,8 @@ defra.path <-
     google.drive.spatial %>% paste0('/Defra air pollution/mappm252010g.csv'),
     google.drive.spatial %>% paste0('/Defra air pollution/mappm252012g.csv'),
     google.drive.spatial %>% paste0('/Defra air pollution/mappm252015g.csv'),
-    google.drive.spatial %>% paste0('/Defra air pollution/mappm252016g.csv')
+    google.drive.spatial %>% paste0('/Defra air pollution/mappm252016g.csv'),
+    google.drive.spatial %>% paste0('/Defra air pollution/mappm252018g.csv')
   )
 
 
@@ -54,7 +55,8 @@ zones.wide <-
     year2010 = mean(pm252010g, na.rm = T),
     year2012 = mean(pm252012g, na.rm = T),
     year2015 = mean(pm252015g, na.rm = T),
-    year2016 = mean(pm252016g, na.rm = T)
+    year2016 = mean(pm252016g, na.rm = T),
+    year2018 = mean(pm252018g, na.rm = T)
   )
 
 # replace(1:5, 2:3, c('a', 'b')) ## replace is useful and in base R

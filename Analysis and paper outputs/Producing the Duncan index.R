@@ -7,14 +7,26 @@ eng04 <- read.csv('Saved generated data/Formatted English data 2004.csv')
 eng07 <- read.csv('Saved generated data/Formatted English data 2007.csv')
 eng10 <- read.csv('Saved generated data/Formatted English data 2010.csv')
 eng15 <- read.csv('Saved generated data/Formatted English data 2015.csv')
+eng19 <- read.csv('Saved generated data/Formatted English data 2019.csv')
 sco04 <- read.csv('Saved generated data/Formatted Scotland data 2004.csv')
 sco06 <- read.csv('Saved generated data/Formatted Scotland data 2006.csv')
 sco09 <- read.csv('Saved generated data/Formatted Scotland data 2009.csv')
 sco12 <- read.csv('Saved generated data/Formatted Scotland data 2012.csv')
 sco16 <- read.csv('Saved generated data/Formatted Scotland data 2016.csv')
+sco20 <- read.csv('Saved generated data/Formatted Scotland data 2020.csv')
 
-combined.tab <- rbind(eng04, eng07, eng10, eng15,
-                      sco04, sco06, sco09, sco12, sco16)
+
+## combine tables
+eng.tab <- 
+  rbind(eng04, eng07, eng10, eng15) %>%
+  mutate(country ='England')
+
+sco.tab <-
+  rbind(sco04, sco06, sco09, sco12, sco16, sco20) %>%
+  mutate(country = 'Scotland')
+
+combined.tab <- 
+  rbind(eng.tab, sco.tab)
 
 
 ##  Creating the stats fixed at 2004 quantities; we do not fill in anything if imd == 2015 or 2016
