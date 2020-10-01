@@ -13,6 +13,7 @@ sco06 <- read.csv('Saved generated data/Formatted Scotland data 2006.csv')
 sco09 <- read.csv('Saved generated data/Formatted Scotland data 2009.csv')
 sco12 <- read.csv('Saved generated data/Formatted Scotland data 2012.csv')
 sco16 <- read.csv('Saved generated data/Formatted Scotland data 2016.csv')
+sco20 <- read.csv('Saved generated data/Formatted Scotland data 2020.csv')
 
 
 ## combine tables
@@ -21,7 +22,7 @@ eng.tab <-
   mutate(country ='England')
 
 sco.tab <-
-  rbind(sco04, sco06, sco09, sco12, sco16) %>%
+  rbind(sco04, sco06, sco09, sco12, sco16, sco20) %>%
   mutate(country = 'Scotland')
 
 combined.tab <- 

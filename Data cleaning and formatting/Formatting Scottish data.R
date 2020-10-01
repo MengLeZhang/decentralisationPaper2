@@ -3,8 +3,6 @@
 ##  take a wee while and requires us to pay attention to the sourtce files
 ##  This is for Scotland
 
-source('UI paper 1 source.R')
-
 ### This is the neater formatting for the Scottish data
 ##  Again the format is the same as the English
 ##  For ease we will create a variable called 'zone' to always do the merger
@@ -99,9 +97,6 @@ rm(neat.tab)
 
 ##  2) Scottish 2006 data formatting ----
 
-#geo <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06 geo access.csv') %>% read.csv
-#house <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06 housing.csv' %>% read.csv
-#crime <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06 crime.csv' %>% read.csv
 pop <- google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06.csv') %>% read.csv
 
 
@@ -333,6 +328,82 @@ summary(neat.tab) #checks
 head(neat.tab)
 neat.tab %>% write.csv('Saved generated data/Formatted Scotland data 2016.csv')
 rm(neat.tab)
+
+
+##  6) Scot data 2020 ----
+
+pop <- 
+  google.drive.spatial %>% paste0('/Scottish IMDs/2020/simd2020 indicators.csv') %>% read.csv
+
+
+ranks %>% summary
+
+pop <- pop %>% 
+  mutate(Income_count = 
+           Income_count  %>% replace_na(0)) %>%
+  mutate(zone = Data_Zone)
+
+ranks <- google.drive.spatial %>%  
+  paste0('/Scottish IMDs/2020/simd2020 ranks.csv') %>% read.csv
+
+ranks <- 
+  ranks %>%
+  mutate(zone = DZ)
+
+
+##  mergers of geodata
+imd <- pop %>% 
+  left_join(ranks) %>%
+  left_join(accessdz.11, 
+            by = 'zone') %>%
+  left_join(area.tab %>% filter(type == 'dz11'),
+            by = 'zone') %>%
+  left_join(dist %>% filter(zone_type == 'dz11'), 
+            by = 'zone') %>%
+  left_join(pm25 %>% filter(type == 'dz11'), 
+            by = 'zone') %>%
+  left_join(allTenure %>% filter(census == '2011'),
+            by = 'zone')
+
+
+nrow(pop) == nrow(imd) # Check its a 1 to 1 join
+
+
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+##  neat table 
+neat.tab <- 
+  imd %>% 
+  mutate(year = 2020,
+         country = 'Scotland',
+         la = Council_area,
+         ttwa = ttwa11nm,
+         pop = Total_population,
+         inc.n = Income_count,
+         noninc.n = pop - inc.n,
+         
+         social.HH = socialHH,
+         nonsocial.HH = nonsocialHH,
+         
+         
+         dist_main = main_dist,
+         dist_nearest = nearest_dist,
+         crime = SIMD2020_Crime_Domain_Rank,
+         live.in = SIMD2020_Housing_Domain_Rank ,
+         geo = SIMD2020_Access_Domain_Rank ,
+         area = area,
+         pm25 = year2018 %>% {-1 * .} %>% rank,
+         work = accessB)%>%
+  dplyr::select(zone, year:work, area)
+
+
+
+
+##  ~~~#
+summary(neat.tab) #checks
+head(neat.tab)
+neat.tab %>% write.csv('Saved generated data/Formatted Scotland data 2020.csv')
+rm(neat.tab)
+
 
 ##  End -----
 
