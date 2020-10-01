@@ -2,7 +2,6 @@
 ##  Defra grid sq to datazone and lsoa work actually did it's job
 
 ##  Step one: Load in data ----
-source('UI paper 1 source.R')
 ukgrid = "+init=epsg:27700" ## always remember the CRS for northing easting
 
 ##  Intial files
