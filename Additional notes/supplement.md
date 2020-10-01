@@ -25,9 +25,9 @@ DWP: Department of Work and Pensions
 
 | Measure     | English IMD 2019    | Scottish IMD 2020 |
 | :------------- | :------------- |:------------- |
-| Population       | Population estimate (2012)      | Population estimate |
+| Population       | Population estimate (2017)      | Population estimate (2017) |
 | Income deprivation   | DWP (2015/16) | DWP  |
-| Geographical access  | Road distance (2019)  | Drive and public transport times   |
+| Geographical access  | Road distance (2019)  | Drive and public transport times and broadband connectivity (2019)   |
 | Housing | 2011 Census (Central heating and overcrowding) | 2011 Census (Central heating and overcrowding)|
 | Crime   | Police force (2016/2017)  | Police force|
 
