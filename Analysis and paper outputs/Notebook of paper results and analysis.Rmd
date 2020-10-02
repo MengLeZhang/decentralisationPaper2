@@ -360,7 +360,7 @@ di.reg2 <- lm(form2 %>% update(di ~ .), reg.match, weights = weights)
 stargazer(dist.reg,
           di.reg, 
           type = 'text',
-          title = 'Model results for segregation (unmatched random effects)',
+          title = 'Model results for segregation (OLS)',
           dep.var.caption = 'Segregation index',
           dep.var.labels.include = F,
           covariate.labels = c('Scotland', 'Year (2019/20 = 1)', 'Year:Scotland'),
@@ -457,7 +457,7 @@ reg.list <- list(in.reg,
                  work.reg)
 
 stargazer(reg.list, type = 'text',
-          title = 'Random effect model results',
+          title = 'OLS model results',
           dep.var.caption = 'Inequality index',
           column.labels = c('Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access'),
           covariate.labels = c('Scotland', 'Year (2019/20 = 1)', 'Year:Scotland'),
