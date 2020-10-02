@@ -37,6 +37,7 @@ allTenure <- 'Saved generated data/ census HH tenure lookup.csv' %>% read.csv
 ##  Load in primarily imd data
 pop <- 
   google.drive.spatial %>% paste0('/Scottish IMDs/2004/simd 04.csv') %>% read.csv
+
 pop <- pop %>%
   mutate(zone = Data.Zone)
 
@@ -53,10 +54,27 @@ imd <- pop %>%
             by = 'zone') %>%
   left_join(allTenure %>% filter(census == '2001'),
             by = 'zone')
+imd %>% head
+## 1.b data issue simd04 has no crime stats so impute from simd 2006 (!!!) ----
 
+## issue 1.
+simd06 <- 
+  google.drive.spatial %>% paste0('/Scottish IMDs/2006/simd 06.csv') %>% read.csv
 
+##  Add a zone id and replace NA of number ofi ncome deprived to 0
+simd06 <- 
+  simd06 %>% 
+  mutate(crime06 = 
+           SIMD.Crime.2006.rank) %>%
+  mutate(zone = Data.Zone) %>%
+  dplyr::select(zone, crime06) 
+
+imd <-
+  imd %>%
+  left_join(simd06, by = 'zone')
+
+## issue 2
 ##  Some SIMD varianbles have issues; income deprivation ns are missing
-imd %>% filter(is.na(Number.of.Current.Income.Deprived)) %>% head
 # all missing cases have the highest SIMD income rank indciatng
 ##  or very high therefore  missingness is due to 0 values
 ##  Therefore we repalce missing with 0
@@ -81,7 +99,7 @@ neat.tab <-
 
          dist_main = main_dist,
          dist_nearest = nearest_dist,
-         crime = NA_integer_, #we are specifcying type just for neatness later
+         crime = crime06, # imputing simd06 crime
          live.in = Housing.domain.rank,
          geo = Geographic.Access.and.Telecommunications.domain.rank,
          area = area,
