@@ -71,7 +71,8 @@ unmatch.tab <-
 ##  The matching formula
 match.form <- 
   I(country == 'Scotland') ~ 
-  log(total.pop) + log(total.area) + 
+  log(total.pop) + 
+  log(total.area) + 
   cumNoninc_at_20 +
   cumNoninc_at_40 +
   cumNoninc_at_60 +
@@ -100,3 +101,31 @@ plot(
   )
 
 
+##  3. Plotting and summarising common support ----
+
+## 3.1: Go get the matched data into a seperate dataset with a col saying sample (All / Matched)
+temp.match <- MatchIt::match.data(match.res)
+temp.match <- temp.match %>% dplyr::select(ttwa, weights)
+match_df_for_merge <- 
+  unmatch.tab %>% 
+  right_join(temp.match, by = 'ttwa') %>%
+  mutate(
+    sample = 'Matched'
+  )
+
+unmatch_df_for_merge <-
+  unmatch.tab %>% 
+  mutate(
+    sample = 'All',
+    weights = 1
+  )
+## Join the two datasets for plotting and checking common support
+common_support_df <-
+  bind_rows(match_df_for_merge, unmatch_df_for_merge)
+  
+##  3.2 The plots for the matching variables
+ggplot(common_support_df) +
+  geom_histogram(
+    aes(x = log(di), y = ..density.., weight = weights, fill = country)
+  ) +
+  facet_grid(cols = vars(sample))
