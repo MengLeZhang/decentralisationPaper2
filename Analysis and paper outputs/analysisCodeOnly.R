@@ -73,10 +73,11 @@ match.form <-
   I(country == 'Scotland') ~ 
   log(total.pop) + 
   log(total.area) + 
-  cumNoninc_at_20 +
-  cumNoninc_at_40 +
-  cumNoninc_at_60 +
-  cumNoninc_at_80 + 
+  dist_nearest04 + 
+  # cumNoninc_at_20 +
+  # cumNoninc_at_40 +
+  # cumNoninc_at_60 +
+  # cumNoninc_at_80 + 
   di04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
@@ -87,7 +88,10 @@ match.res <-
           ## match on 201
           data =   
             unmatch.tab %>%
-            dplyr::select(ttwa:total.area, cumNoninc_at_20:cumNoninc_at_80, di04),
+            dplyr::select(ttwa:total.area, 
+                          #cumNoninc_at_20:cumNoninc_at_80, 
+                          dist_nearest04,
+                          di04),
           method = 'genetic')
 
 ?matchit
@@ -102,7 +106,6 @@ plot(
 
 
 ##  3. Plotting and summarising common support ----
-
 ## 3.1: Go get the matched data into a seperate dataset with a col saying sample (All / Matched)
 temp.match <- MatchIt::match.data(match.res)
 temp.match <- temp.match %>% dplyr::select(ttwa, weights)
@@ -124,8 +127,27 @@ common_support_df <-
   bind_rows(match_df_for_merge, unmatch_df_for_merge)
   
 ##  3.2 The plots for the matching variables
-ggplot(common_support_df) +
-  geom_histogram(
-    aes(x = log(di), y = ..density.., weight = weights, fill = country)
-  ) +
-  facet_grid(cols = vars(sample))
+##  Literally exist to save lines of code
+##  To parse variable names from a string to ggplot we need to use get()
+## see https://stackoverflow.com/questions/22309285/how-to-use-a-variable-to-specify-column-name-in-ggplot
+
+boxplot_this <-
+  function(y #String for the variable name 
+           ){
+    
+  ggplot(common_support_df, 
+         aes(y = get(y), 
+             fill = country,
+             weight = weights
+             )
+    ) +
+    geom_boxplot(
+      ) +
+    facet_grid(cols = vars(sample))
+
+      }
+boxplot_this(y = 'total.area')
+boxplot_this(y = 'total.pop')
+boxplot_this(y = 'di')
+boxplot_this(y = 'dist_nearest')
+boxplot_this(y = 'concen') ## very different concentration
