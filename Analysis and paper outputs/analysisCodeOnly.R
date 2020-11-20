@@ -222,12 +222,55 @@ overtime_summary <-
   summarise(
     di04 = di[year == '2004'],
     di20 = di[year == '2019/20'],
-    change_di = di[year == '2004'] - di[year == '2019/20']
+    change_di = di[year == '2004'] - di[year == '2019/20'],
+    ## distance nearest
+    rci04 = dist_nearest[year == '2004'],
+    rci20 = dist_nearest[year == '2019/20'],
+    change_rci = rci20 - rci04
+    
   )
 
 
-overtime_summary %>%
-  filter(sample == 'Matched')
+di_OverTime <-
+  ggplot(overtime_summary %>% 
+         filter(sample == 'Matched'), 
+       aes(y = di20, 
+           colour = country,
+           shape = country,
+           x = di04
+       )
+  ) +
+  geom_point(
+    size = 2
+  ) +
+  geom_abline(
+    slope = 1
+  )
+
+rci_OverTime <-
+  ggplot(overtime_summary %>% 
+         filter(sample == 'Matched'), 
+       aes(y = rci20, 
+           colour = country,
+           shape = country,
+           x = rci04
+       )
+  ) +
+  geom_point(
+    size = 2
+  ) +
+  geom_abline(
+    slope = 1
+  )
+
+mylegend <- 
+  g_legend(di_OverTime + theme(legend.direction = 'horizontal'))
+
+
+gfx <- grid.arrange(di_OverTime + theme(legend.position="none"), 
+                    rci_OverTime + theme(legend.position="none")
+)
+
 
 
 ##  3. Run the analysis
