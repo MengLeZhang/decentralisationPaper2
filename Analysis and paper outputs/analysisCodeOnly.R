@@ -195,29 +195,20 @@ ggplot(common_support_df,
 ## 4. create into wideform
 ttwa.tab2 <-
   ttwa.tab %>%
-  left_join(
+  right_join(
     match_df_for_merge %>%
       dplyr::select(ttwa, weights, sample)
   )
 
-
-ggplot(ttwa.tab2 %>% filter(sample == 'Matched'), 
-       aes(y = di, 
-           x = year,
-           colour = country,
-           group = ttwa,
-           weight = weights
-       )
-  ) +
-  geom_point(
-  ) +
-  geom_line()
-  
-
-
+ttwa.tab_all <-
+  ttwa.tab %>% 
+  mutate(sample = 'All') %>%
+  bind_rows(
+    ttwa.tab2
+  )
 
 overtime_summary <-
-  ttwa.tab2 %>%
+  ttwa.tab_all %>%
   group_by(ttwa, country, sample) %>%
   summarise(
     di04 = di[year == '2004'],
@@ -230,10 +221,10 @@ overtime_summary <-
     
   )
 
+di_OverTime
 
 di_OverTime <-
-  ggplot(overtime_summary %>% 
-         filter(sample == 'Matched'), 
+  ggplot(overtime_summary,
        aes(y = di20, 
            colour = country,
            shape = country,
@@ -245,11 +236,11 @@ di_OverTime <-
   ) +
   geom_abline(
     slope = 1
-  )
+  ) +
+  facet_grid(cols = vars(sample))
 
 rci_OverTime <-
-  ggplot(overtime_summary %>% 
-         filter(sample == 'Matched'), 
+  ggplot(overtime_summary, 
        aes(y = rci20, 
            colour = country,
            shape = country,
@@ -261,16 +252,19 @@ rci_OverTime <-
   ) +
   geom_abline(
     slope = 1
-  )
+  ) +
+  facet_grid(cols = vars(sample))
 
 mylegend <- 
   g_legend(di_OverTime + theme(legend.direction = 'horizontal'))
 
 
-gfx <- grid.arrange(di_OverTime + theme(legend.position="none"), 
-                    rci_OverTime + theme(legend.position="none")
+gfx <- grid.arrange(di_OverTime + ylab('DI 2019/20') + xlab('DI 2004')+ theme(legend.position="none"), 
+                    rci_OverTime + ylab('RCI 2019/20') + xlab('RCI 2004')+ theme(legend.position="none")
 )
 
+grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
+             top = 'Segregation measures 2004 - 2019/20')
 
 
 ##  3. Run the analysis
