@@ -117,14 +117,18 @@ in the matching by default (it generate own: i think from Sekhon's examples).
 
 ```{r, results= 'hide'}
 ## We need to hide all the print statement caused by genmatch
-match.form <- I(country == 'Scotland') ~ total.pop + total.area + dist_nearest04 + di04
+match.form <- 
+  I(country == 'Scotland') ~ 
+  log(total.pop) + 
+  log(total.area) + dist_nearest04 + di04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
-          ratio = 2,
+          ratio = 1,
+          distance = 'mahalanobis',
           data = unmatch.tab %>% dplyr::select(ttwa:total.area, dist_nearest04, di04),
-          method = 'genetic')
+          method = 'nearest')
 
 
           
