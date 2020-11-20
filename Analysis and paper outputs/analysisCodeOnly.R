@@ -248,8 +248,8 @@ overtime_summary <-
     
   )
 
-di_OverTime
-
+## Graphs
+library(ggrepel)
 di_OverTime <-
   ggplot(overtime_summary,
        aes(y = di20, 
@@ -266,6 +266,7 @@ di_OverTime <-
   ) +
   facet_grid(cols = vars(sample))
 
+
 rci_OverTime <-
   ggplot(overtime_summary, 
        aes(y = rci20, 
@@ -280,19 +281,30 @@ rci_OverTime <-
   geom_abline(
     slope = 1
   ) +
-  facet_grid(cols = vars(sample))
+  facet_grid(cols = vars(sample)) 
+
 
 mylegend <- 
   g_legend(di_OverTime + theme(legend.direction = 'horizontal'))
 
 
-gfx <- grid.arrange(di_OverTime + ylab('DI 2019/20') + xlab('DI 2004')+ theme(legend.position="none"), 
-                    rci_OverTime + ylab('RCI 2019/20') + xlab('RCI 2004')+ theme(legend.position="none")
+gfx <- grid.arrange(
+  di_OverTime + ylab('DI 2019/20') + xlab('DI 2004')+ theme(legend.position="none") +
+    geom_label_repel(
+      aes(label=ifelse(
+        sample == 'Matched' & ttwa %in% c('Glasgow', 'Edinburgh', 'Dundee', 'Aberdeen'), 
+        as.character(ttwa),'')),
+      nudge_y = -10), 
+  rci_OverTime + ylab('RCI 2019/20') + xlab('RCI 2004')+ theme(legend.position="none")  +
+    geom_label_repel(
+      aes(label=ifelse(
+        sample == 'Matched' & ttwa %in% c('Glasgow', 'Edinburgh', 'Dundee', 'Aberdeen'), 
+        as.character(ttwa),'')),
+      nudge_y = -10)
 )
 
 grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
-             top = 'Segregation measures 2004 - 2019/20')
-
+             top = 'Uneveness and centralisation measures 2004 - 2019/20')
 
 ### box plots of the stats?
 
