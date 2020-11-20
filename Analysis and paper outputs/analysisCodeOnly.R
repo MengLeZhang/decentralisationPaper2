@@ -47,7 +47,7 @@ ttwa.tab <-
   mutate(dist_nearest04 = dist_nearest[year == '2004']) %>%
   mutate(di04 = di[year == '2004']) %>%
   ungroup %>%
-  filter(pop04 > 70000) %>% ## over 70k in 2004
+  filter(pop04 > 70e3) %>% ## over 70k in 2004
   filter(!is.na(ttwa)) ##finally no missign ttwa as this code is just due to our previous routine
 
 ##  Recode IMD years to reflect just years of interest
@@ -60,7 +60,40 @@ ttwa.tab <-
   ) %>%
   filter( year %in% c('2004', '2019/20'))
 
-##  2. Matching using genmatch -----
+
+##  2. Getting the correlation
+cor.df <- 
+  ttwa.tab %>% filter(year == 2004) 
+
+##  Making the correlation table 
+cor.vars <- c('dist_nearest', 'di','live.in', 'crime', 'geo', 'pm25', 'work')
+cor.table <- cor(cor.df %>% dplyr::select(cor.vars), 
+                 method = 'spearman', 
+                 use = 'pairwise.complete.obs') # only modest correlation
+
+##  Formatting it for stargazer
+cor.table[cor.table %>% upper.tri(diag = T)] <- NA
+ind.nms <- c('RCI', 'Diss. Index', 'Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access')
+rownames(cor.table) <- ind.nms
+colnames(cor.table) <- ind.nms
+
+stargazer(cor.table, 
+          type = 'text', #anything else stargazer will output like code
+          title = 'Spearman\'s rank correlation matrix between indicies (2004)',
+          out = '../Results/ Index correlation table.html',
+          notes = 'Note: Scottish crime data excluded from calculation')
+
+##  correlation @ 2004
+cor2.table <- cor(cor.df %>% 
+                   dplyr::select('dist_nearest', 'di', total.area, total.pop), 
+                 method = 'spearman', 
+                 use = 'pairwise.complete.obs') # only modest correlation
+
+cor2.table #only very weak correlation; bigger areas less centralised
+## however uneveness has a strong correlation with total pop
+
+
+##  3. Matching using genmatch -----
 
 ## Get the 2004 data to do the matching
 unmatch.tab <-
@@ -71,28 +104,23 @@ unmatch.tab <-
 ##  The matching formula
 match.form <- 
   I(country == 'Scotland') ~ 
-  log(total.pop) + 
+#  log(total.pop) + 
   log(total.area) + 
   dist_nearest04 + 
-  # cumNoninc_at_20 +
-  # cumNoninc_at_40 +
-  # cumNoninc_at_60 +
-  # cumNoninc_at_80 + 
   di04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
-          ratio = 2,
+          ratio = 1,
           distance = 'mahalanobis',
           ## match on 201
           data =   
             unmatch.tab %>%
             dplyr::select(ttwa:total.area, 
-                          #cumNoninc_at_20:cumNoninc_at_80, 
                           dist_nearest04,
                           di04),
-          method = 'genetic')
+          method = 'nearest')
 
 ?matchit
 ## double check the matc
@@ -100,9 +128,9 @@ match.stats <-
   match.res %>% summary
 
 plot(match.res)
-plot(
-  match.res %>% summary(standardize = T)
-  )
+# plot(
+#   match.res %>% summary(standardize = T)
+#   )
 
 
 ##  3. Plotting and summarising common support ----
@@ -151,3 +179,102 @@ boxplot_this(y = 'total.pop')
 boxplot_this(y = 'di')
 boxplot_this(y = 'dist_nearest')
 boxplot_this(y = 'concen') ## very different concentration
+
+## Redone the area in log population
+
+ggplot(common_support_df, 
+       aes(y = log(total.pop), 
+           fill = country,
+           weight = weights
+       )
+) +
+  geom_boxplot(
+  ) +
+  facet_grid(cols = vars(sample))
+
+## 4. create into wideform
+ttwa.tab2 <-
+  ttwa.tab %>%
+  left_join(
+    match_df_for_merge %>%
+      dplyr::select(ttwa, weights, sample)
+  )
+
+
+ggplot(ttwa.tab2 %>% filter(sample == 'Matched'), 
+       aes(y = di, 
+           x = year,
+           colour = country,
+           group = ttwa,
+           weight = weights
+       )
+  ) +
+  geom_point(
+  ) +
+  geom_line()
+  
+
+
+
+overtime_summary <-
+  ttwa.tab2 %>%
+  group_by(ttwa, country, sample) %>%
+  summarise(
+    di04 = di[year == '2004'],
+    di20 = di[year == '2019/20'],
+    change_di = di[year == '2004'] - di[year == '2019/20']
+  )
+
+
+overtime_summary %>%
+  filter(sample == 'Matched')
+
+
+##  3. Run the analysis
+## it's very hard to matched by both area AND population
+
+##  The  models 
+form1 <- ~ country + I(year == '2019/20')*country
+form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 + di04 ## We omit the I(year - 2004) variable since last 
+##  years 2015 or 2016 is associated with country
+##Note:  form2 is form1 with more variables
+
+# Segregation indicies regression ------------------------------------------------
+##  
+dist.reg <- lm(form1 %>% update(dist_nearest ~ .), unmatch_df_for_merge)
+dist.reg2 <- lm(form2 %>% update(dist_nearest ~ .), match_df_for_merge, weights = weights)
+
+di.reg <- lm(form1 %>% update(di ~ .), unmatch_df_for_merge)
+di.reg2 <- lm(form2 %>% update(di ~ .), match_df_for_merge, weights = weights)
+
+
+## Save table
+stargazer(dist.reg,
+          di.reg, 
+          type = 'text',
+          title = 'Model results for segregation (OLS)',
+          dep.var.caption = 'Segregation index',
+          dep.var.labels.include = F,
+          covariate.labels = c('Scotland', 'Year (2019/20 = 1)', 'Year:Scotland'),
+          column.labels = c('RCI', 'DI'),
+          omit = c('scale', 'dist_nearest04', 'di04'),
+          no.space = T,
+          out = '../Results/ Segregation index model results unmatched.html',
+          keep.stat = c('n')
+)
+
+stargazer(dist.reg2,
+          di.reg2, 
+          type = 'text',
+          title = 'Model results for segregation (matched OLS)',
+          dep.var.caption = 'Segregation index',
+          dep.var.labels.include = F,
+          covariate.labels = c('Scotland', 'Constant'),
+          column.labels = c('RCI', 'DI'),
+          omit = c('scale', 'dist_nearest04', 'di04'),
+          no.space = T,
+          out = '../Results/ Segregation index model results matched.html',
+          keep.stat = c('n')
+)
+
+
