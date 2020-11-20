@@ -214,10 +214,37 @@ overtime_summary <-
     di04 = di[year == '2004'],
     di20 = di[year == '2019/20'],
     change_di = di[year == '2004'] - di[year == '2019/20'],
+    
+    ##  live in
+    live.in04 = live.in[year == '2004'],
+    live.in20 = live.in[year == '2019/20'],
+    change_live.in = live.in20 - live.in04,
+    
+    ## Crime
+    crime04 = crime[year == '2004'],
+    crime20 = crime[year == '2019/20'],
+    change_crime = crime20 - crime04,
+    
+    ## geo
+    geo04 = geo[year == '2004'],
+    geo20 = geo[year == '2019/20'],
+    change_geo = geo20 - geo04,
+    
+    ## pm25
+    pm2504 = pm25[year == '2004'],
+    pm2520 = pm25[year == '2019/20'],
+    change_pm25 = pm2520 - pm2504,
+    
+    ## work
+    work04 = work[year == '2004'],
+    work20 = work[year == '2019/20'],
+    change_work = work20 - work04,
+    
     ## distance nearest
     rci04 = dist_nearest[year == '2004'],
     rci20 = dist_nearest[year == '2019/20'],
     change_rci = rci20 - rci04
+
     
   )
 
@@ -267,51 +294,99 @@ grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
              top = 'Segregation measures 2004 - 2019/20')
 
 
-##  3. Run the analysis
-## it's very hard to matched by both area AND population
+### box plots of the stats?
 
-##  The  models 
-form1 <- ~ country + I(year == '2019/20')*country
-form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 + di04 ## We omit the I(year - 2004) variable since last 
-##  years 2015 or 2016 is associated with country
-##Note:  form2 is form1 with more variables
-
-# Segregation indicies regression ------------------------------------------------
-##  
-dist.reg <- lm(form1 %>% update(dist_nearest ~ .), unmatch_df_for_merge)
-dist.reg2 <- lm(form2 %>% update(dist_nearest ~ .), match_df_for_merge, weights = weights)
-
-di.reg <- lm(form1 %>% update(di ~ .), unmatch_df_for_merge)
-di.reg2 <- lm(form2 %>% update(di ~ .), match_df_for_merge, weights = weights)
-
-
-## Save table
-stargazer(dist.reg,
-          di.reg, 
-          type = 'text',
-          title = 'Model results for segregation (OLS)',
-          dep.var.caption = 'Segregation index',
-          dep.var.labels.include = F,
-          covariate.labels = c('Scotland', 'Year (2019/20 = 1)', 'Year:Scotland'),
-          column.labels = c('RCI', 'DI'),
-          omit = c('scale', 'dist_nearest04', 'di04'),
-          no.space = T,
-          out = '../Results/ Segregation index model results unmatched.html',
-          keep.stat = c('n')
-)
-
-stargazer(dist.reg2,
-          di.reg2, 
-          type = 'text',
-          title = 'Model results for segregation (matched OLS)',
-          dep.var.caption = 'Segregation index',
-          dep.var.labels.include = F,
-          covariate.labels = c('Scotland', 'Constant'),
-          column.labels = c('RCI', 'DI'),
-          omit = c('scale', 'dist_nearest04', 'di04'),
-          no.space = T,
-          out = '../Results/ Segregation index model results matched.html',
-          keep.stat = c('n')
-)
+house.gg <-
+  ggplot(ttwa.tab, 
+       aes(y = live.in, 
+           x = year,
+           fill = year
+       )
+  ) +
+  geom_boxplot(
+  ) +
+  scale_fill_manual(
+    values =  c("#E69F00", "#56B4E9")
+  )+
+  ylab('Housing') +
+  facet_grid(cols = vars(country)) 
 
 
+crime.gg <- 
+  ggplot(ttwa.tab, 
+       aes(y = crime, 
+           x = year,
+           fill = year
+       )
+) +
+  geom_boxplot(
+  ) +
+  scale_fill_manual(
+    values =  c("#E69F00", "#56B4E9")
+    )+
+  ylab('Crime') +
+  facet_grid(cols = vars(country)) 
+
+
+geo.gg <- 
+  ggplot(ttwa.tab, 
+         aes(y = geo, 
+             x = year,
+             fill = year
+         )
+  ) +
+  geom_boxplot(
+  ) +
+  scale_fill_manual(
+    values =  c("#E69F00", "#56B4E9")
+  )+
+  ylab('Geo. access') +
+  facet_grid(cols = vars(country)) 
+
+pm25.gg <- 
+  ggplot(ttwa.tab, 
+         aes(y = pm25, 
+             x = year,
+             fill = year
+         )
+  ) +
+  geom_boxplot(
+  ) +
+  scale_fill_manual(
+    values =  c("#E69F00", "#56B4E9")
+  )+
+  ylab('Pollution') +
+  facet_grid(cols = vars(country)) 
+
+work.gg <- 
+  ggplot(ttwa.tab, 
+         aes(y = work, 
+             x = year,
+             fill = year
+         )
+  ) +
+  geom_boxplot(
+  ) +
+  scale_fill_manual(
+    values =  c("#E69F00", "#56B4E9")
+  )+
+  ylab('Work access') +
+  facet_grid(cols = vars(country)) 
+
+boxlegend<-g_legend(house.gg + theme(legend.direction = 'horizontal'))
+
+
+gfx <- grid.arrange(house.gg + xlab('') + theme(legend.position="none"), 
+                    crime.gg + xlab('') + theme(legend.position="none"), 
+                    geo.gg + xlab('')+ theme(legend.position="none"), 
+                    pm25.gg + xlab('') + theme(legend.position="none"), 
+                    work.gg + xlab('') + theme(legend.position="none"), 
+                    left = 'Spatial inequality index',
+                    bottom = 'Year'
+        )
+
+grid.arrange(#boxlegend, 
+  gfx, 
+  #nrow=2,
+  #heights=c(1, 12),
+             top = 'Spatial inequality 2004 - 2019/20')
