@@ -48,6 +48,8 @@ combined.tab %>%
   write.csv('Saved generated data/Master formated data of variables for England and Scotland (UI paper1).csv',
             row.names = F)
 
+
+
 ##  Step 2) Caculate the duncan index for every combination of year and ttwa / la
 ##  TTWA
 ttwa.tab <- 
@@ -73,9 +75,55 @@ ttwa.tab <-
             
   )
 
+
+
+### Addition: Add stats for cumulative prop of people living near city centre----
+
+cumulative.tab <- 
+  combined.tab %>%
+  group_by(ttwa, year) %>%
+  arrange(dist_nearest) %>%
+  mutate(
+    cumInc = cumsum(inc.n) / sum(inc.n),
+    cumNoninc = cumsum(noninc.n) / sum(noninc.n)
+  ) 
+
+cumulative.tab <-
+  cumulative.tab %>%
+  group_by(ttwa, year) %>%
+  mutate(
+    minus20 = abs(cumInc - 0.20),
+    minus40 = abs(cumInc - 0.40),
+    minus60 = abs(cumInc - 0.60),
+    minus80 = abs(cumInc - 0.80)
+  ) %>%
+  summarise(
+    i20 = which.min(minus20),
+    i40 = which.min(minus40),
+    i60 = which.min(minus60),
+    i80 = which.min(minus80),
+    cumNoninc_at_20 = cumNoninc[i20],
+    cumNoninc_at_40 = cumNoninc[i40],
+    cumNoninc_at_60 = cumNoninc[i60],
+    cumNoninc_at_80 = cumNoninc[i80]
+  ) %>%
+  ungroup %>%
+  dplyr::select(ttwa, year, cumNoninc_at_20:cumNoninc_at_80)
+
+## Left join
+ttwa.tab <- 
+  ttwa.tab %>%
+  left_join(cumulative.tab)
+
+#### END HOTFIX ###
+
+
+
 ttwa.tab %>% write.csv('Results/Duncan index by TTWA.csv')
 cor(ttwa.tab[, 4:19], use= "pairwise.complete.obs", method = 'spearman')
 ## Large correlation between ranks for crime etc
+
+
 
 ##  2) Results using segregation by housing tenure ----
 ttwa.tab_HH <- 

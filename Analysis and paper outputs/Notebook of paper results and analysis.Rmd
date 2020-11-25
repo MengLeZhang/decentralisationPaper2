@@ -117,14 +117,18 @@ in the matching by default (it generate own: i think from Sekhon's examples).
 
 ```{r, results= 'hide'}
 ## We need to hide all the print statement caused by genmatch
-match.form <- I(country == 'Scotland') ~ total.pop + total.area + dist_nearest04 + di04
+match.form <- 
+  I(country == 'Scotland') ~ 
+  log(total.pop) + 
+  log(total.area) + dist_nearest04 + di04
 
 set.seed(123) ## genetic matchhing is a random process so we must set seed
 match.res <- 
   matchit(match.form,
-          ratio = 2,
+          ratio = 1,
+          distance = 'mahalanobis',
           data = unmatch.tab %>% dplyr::select(ttwa:total.area, dist_nearest04, di04),
-          method = 'genetic')
+          method = 'nearest')
 
 
           
@@ -322,6 +326,7 @@ grid.arrange(mylegend, gfx, nrow=2,heights=c(1, 12),
 
 The data we are using for the models
 
+
 ```{r}
 reg.unmatch <- ttwa.tab # just the whole data
 
@@ -339,11 +344,39 @@ reg.match <- ttwa.tab %>% merge(temp.match, by = 'ttwa')
 ```
 
 
+```{r summary of matches}
+## unmatched
+reg.unmatch %>%
+  filter(year == '2004') %>%
+  group_by(country) %>%
+  summarise(
+    mean.pop = mean(total.pop),
+    mean.areakm = mean(total.area) / 1e6,
+    mean.di = mean(di04),
+    mean.rci = mean(dist_nearest04),
+    
+  )
+
+
+## matched
+MatchIt::match.data(match.res) %>%
+  group_by(country) %>%
+  summarise(
+    mean.pop = mean(total.pop),
+    mean.areakm = mean(total.area) / 1e6,
+    mean.di = mean(di04),
+    mean.rci = mean(dist_nearest04),
+
+  )
+
+```
+
+
 
 ```{r}
 ##  The  models 
 form1 <- ~ country + I(year == '2019/20')*country
-form2 <- ~ country + scale(total.pop) + scale(total.area) + dist_nearest04 + di04 ## We omit the I(year - 2004) variable since last 
+form2 <- ~ country + log(total.pop) + log(total.area) + dist_nearest04 + di04 ## We omit the I(year - 2004) variable since last 
 ##  years 2015 or 2016 is associated with country
 ##Note:  form2 is form1 with more variables
 
@@ -379,10 +412,11 @@ stargazer(dist.reg2,
           dep.var.labels.include = F,
           covariate.labels = c('Scotland', 'Constant'),
           column.labels = c('RCI', 'DI'),
-          omit = c('scale', 'dist_nearest04', 'di04'),
+          omit = c('log', 'dist_nearest04', 'di04'),
           no.space = T,
           out = '../Results/ Segregation index model results matched.html',
-          keep.stat = c('n')
+          keep.stat = c('n'),
+          notes = 'Other covariates not shown'
 )
 
 
@@ -462,7 +496,7 @@ stargazer(reg.list, type = 'text',
           column.labels = c('Housing', 'Crime', 'Geo. access', 'Air pollution', 'Work access'),
           covariate.labels = c('Scotland', 'Year (2019/20 = 1)', 'Year:Scotland'),
 #          column.labels = rep(c('All', 'Matched'), 5),
-          omit = c('scale', 'dist_nearest04'),
+          omit = c('log', 'dist_nearest04'),
           no.space = T,
 #          notes = 'Note: Scottish crime results only available from 2006 onwards',
           out = '../Results/ Inequality index model results.html',
